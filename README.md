@@ -6,10 +6,17 @@ Go 1.18 generics.
 
 ## Contents
 
-| Container | Slice-based | List-based |     Recommended      |
-|:---------:|:-----------:|:----------:|:--------------------:|
-|   Queue   |      Y      |     Y      | Slice with size hint |
-|   Stack   |      Y      |     Y      | Slice with size hint |
+See the available types by underlying storage 
+
+| Container | Slice | plain List | List with pool |     Recommended      |
+|:---------:|:-----:|:----------:|:--------------:|:--------------------:|
+|   Queue   |   Y   |     Y      |       Y        | Slice with size hint |
+|   Stack   |   Y   |     Y      |       Y        | Slice with size hint |
+
+Generally speaking, in terms of performance: 
+
+- Slice > plain List > list with pool
+- Preallocated > not preallocated
 
 See [BENCHARKS.md](BENCHMARKS.md) for details.
 
