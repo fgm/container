@@ -8,18 +8,17 @@ Go 1.18 generics.
 
 See the available types by underlying storage 
 
-| Container | Slice | plain List | List with pool |     Recommended      |
-|:---------:|:-----:|:----------:|:--------------:|:--------------------:|
-|   Queue   |   Y   |     Y      |       Y        | Slice with size hint |
-|   Stack   |   Y   |     Y      |       Y        | Slice with size hint |
+| Type  | Slice | List | List+sync.Pool | List+internal pool |     Recommended      |
+|:-----:|:-----:|:----:|:--------------:|:------------------:|:--------------------:|
+| Queue |   Y   |  Y   |       Y        |                    | Slice with size hint |
+| Stack |   Y   |  Y   |       Y        |                    | Slice with size hint |
 
 Generally speaking, in terms of performance: 
 
-- Slice > plain List > list with pool
+- Slice > plain List > list+sync.Pool
 - Preallocated > not preallocated
 
 See [BENCHARKS.md](BENCHMARKS.md) for details.
-
 
 ## Use
 
@@ -28,13 +27,13 @@ See complete listing in [`cmd/example.go`](cmd/example.go)
 ### Queues
 
 ```go
-queue := container.NewSliceQueue[Element](sizeHint) // resp. NewListQueue
-queue.Enqueue(e)
-if lq, ok := queue.(container.Countable); ok {
+q := queue.NewSliceQueue[Element](sizeHint) // resp. NewListQueue
+q.Enqueue(e)
+if lq, ok := q.(container.Countable); ok {
     fmt.Printf("elements in queue: %d\n", lq.Len())
 }
 for i := 0; i < 2; i++ {
-    e, ok := queue.Dequeue()
+    e, ok := q.Dequeue()
     fmt.Printf("Element: %v, ok: %t\n", e, ok)
 }
 ```
@@ -42,13 +41,21 @@ for i := 0; i < 2; i++ {
 ### Stacks
 
 ```go
-stack := container.NewSliceStack[Element](sizeHint) // resp. NewListStack
-stack.Push(e)
-if ls, ok := stack.(container.Countable); ok {
+s := stack.NewSliceStack[Element](sizeHint) // resp. NewListStack
+s.Push(e)
+if ls, ok := s.(container.Countable); ok {
     fmt.Printf("elements in stack: %d\n", ls.Len())
 }
 for i := 0; i < 2; i++ {
-    e, ok := stack.Pop()
+    e, ok := s.Pop()
     fmt.Printf("Element: %v, ok: %t\n", e, ok)
 }
+```
+
+### Running tests
+
+The complete test coverage requires running not only the unit tests, but also
+the benchmarks, like:
+```
+go test -race -run=. -bench=. -coverprofile=cover.out -covermode=atomic ./...
 ```

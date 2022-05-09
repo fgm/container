@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/fgm/container"
+	"github.com/fgm/container/queue"
+	"github.com/fgm/container/stack"
 )
 
 type Element int
@@ -15,23 +17,23 @@ const sizeHint = 100
 func main() {
 	var e Element = 42
 
-	queue := container.NewSliceQueue[Element](sizeHint) // resp. NewListQueue
-	queue.Enqueue(e)
-	if lq, ok := queue.(container.Countable); ok {
+	q := queue.NewSliceQueue[Element](sizeHint) // resp. NewListQueue
+	q.Enqueue(e)
+	if lq, ok := q.(container.Countable); ok {
 		fmt.Printf("elements in queue: %d\n", lq.Len())
 	}
 	for i := 0; i < 2; i++ {
-		e, ok := queue.Dequeue()
+		e, ok := q.Dequeue()
 		fmt.Printf("Element: %v, ok: %t\n", e, ok)
 	}
 
-	stack := container.NewSliceStack[Element](sizeHint) // resp. NewListStack
-	stack.Push(e)
-	if ls, ok := stack.(container.Countable); ok {
-		fmt.Printf("elements in stack: %d\n", ls.Len())
+	s := stack.NewSliceStack[Element](sizeHint) // resp. NewListStack
+	s.Push(e)
+	if ls, ok := s.(container.Countable); ok {
+		fmt.Printf("elements in s: %d\n", ls.Len())
 	}
 	for i := 0; i < 2; i++ {
-		e, ok := stack.Pop()
+		e, ok := s.Pop()
 		fmt.Printf("Element: %v, ok: %t\n", e, ok)
 	}
 }
