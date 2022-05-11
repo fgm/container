@@ -32,7 +32,7 @@ func (sq *listSyncPoolQueue[E]) Dequeue() (E, bool) {
 	le := sq.head
 	e := le.Value
 	sq.pool.Put(le)
-	// Single element queue: convert to empty.
+	// Single element queue : convert to empty.
 	if sq.head.Next == nil {
 		sq.head = nil
 		sq.tail = nil

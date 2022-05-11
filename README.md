@@ -4,21 +4,23 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/fgm/container)](https://goreportcard.com/report/github.com/fgm/container)
 
 This module contains minimal type-safe Queue and Stack implementations using
-Go 1.18 generics.
-
+Go 1.18 generics. 
 
 ## Contents
 
 See the available types by underlying storage 
 
-| Type  | Slice | List | List+sync.Pool | List+internal pool |     Recommended      |
-|:-----:|:-----:|:----:|:--------------:|:------------------:|:--------------------:|
-| Queue |   Y   |  Y   |       Y        |                    | Slice with size hint |
-| Stack |   Y   |  Y   |       Y        |                    | Slice with size hint |
+| Type  | Slice | List | List+sync.Pool | List+int. pool |     Recommended      |
+|:-----:|:-----:|:----:|:--------------:|:--------------:|:--------------------:|
+| Queue |   Y   |  Y   |       Y        |       Y        | Slice with size hint |
+| Stack |   Y   |  Y   |       Y        |       Y        | Slice with size hint |
+
+**CAVEAT**: All of these implementations are unsafe for concurrent execution,
+so they need protection in concurrency situations.
 
 Generally speaking, in terms of performance: 
 
-- Slice > plain List > list+sync.Pool
+- Slice > list+internal pool > plain List > list+sync.Pool
 - Preallocated > not preallocated
 
 See [BENCHARKS.md](BENCHMARKS.md) for details.
