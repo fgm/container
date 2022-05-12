@@ -2,8 +2,8 @@
 
 ## Summary
 
-- Slice with preallocation wins in all benchmarks.
-- List2 (with pool) wins no benchmark
+- Slice with preallocation wins in most benchmarks.
+- Preallocating improves aggregate results in all cases, so use it if you can.
 
 ## Data
 
