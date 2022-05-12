@@ -1,5 +1,12 @@
 package container
 
+type OrderedMap[K comparable, V any] interface {
+	Delete(key K)
+	Load(key K) (value V, loaded bool)
+	Range(func(key K, value V) bool)
+	Store(key K, value V)
+}
+
 // Queue is generic queue with no concurrency guarantees.
 // Instantiate by queue.New<implementation>Queue(sizeHint).
 // The size hint MAY be used by some implementations to optimize storage.
