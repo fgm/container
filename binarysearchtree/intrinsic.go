@@ -1,12 +1,12 @@
 package binarysearchtree
 
 import (
-	"golang.org/x/exp/constraints"
+	"cmp"
+
+	"github.com/fgm/container"
 )
 
-type walkCB[E constraints.Ordered] func(*E)
-
-type node[E constraints.Ordered] struct {
+type node[E cmp.Ordered] struct {
 	data        *E
 	left, right *node[E]
 }
@@ -68,7 +68,7 @@ func (n *node[E]) upsert(m *node[E]) *E {
 	}
 }
 
-func (n *node[E]) walkInOrder(cb walkCB[E]) {
+func (n *node[E]) walkInOrder(cb container.WalkCB[E]) {
 	if n == nil {
 		return
 	}
@@ -81,7 +81,7 @@ func (n *node[E]) walkInOrder(cb walkCB[E]) {
 	}
 }
 
-func (n *node[E]) walkPostOrder(cb walkCB[E]) {
+func (n *node[E]) walkPostOrder(cb container.WalkCB[E]) {
 	if n == nil {
 		return
 	}
@@ -94,7 +94,7 @@ func (n *node[E]) walkPostOrder(cb walkCB[E]) {
 	cb(n.data)
 }
 
-func (n *node[E]) walkPreOrder(cb walkCB[E]) {
+func (n *node[E]) walkPreOrder(cb container.WalkCB[E]) {
 	if n == nil {
 		return
 	}
@@ -107,43 +107,58 @@ func (n *node[E]) walkPreOrder(cb walkCB[E]) {
 	}
 }
 
-type Tree[E constraints.Ordered] struct {
+// Intrinsic holds nodes which are their own ordering key.
+type Intrinsic[E cmp.Ordered] struct {
 	root *node[E]
+}
+
+// Len returns the number of nodes in the tree, for the container.Countable interface.
+// Complexity is O(n).
+func (t *Intrinsic[E]) Len() int {
+	l := 0
+	t.WalkPostOrder(func(_ *E) { l++ })
+	return l
+}
+
+func (t *Intrinsic[E]) Elements() []E {
+	var sl []E
+	t.WalkPreOrder(func(e *E) { sl = append(sl, *e) })
+	return sl
 }
 
 // Upsert adds a value to the tree, replacing and returning the previous one if any.
 // If none existed, it returns nil.
-func (t *Tree[E]) Upsert(e ...*E) []*E {
-	res := make([]*E, 0, len(e))
+func (t *Intrinsic[E]) Upsert(e ...*E) []*E {
+	results := make([]*E, 0, len(e))
+	var result *E
 	for _, oneE := range e {
 		n := &node[E]{data: oneE}
 
 		switch {
 		case t == nil, e == nil:
-			res = append(res, nil)
+			result = nil
 		case t.root == nil:
 			t.root = n
-			res = append(res, nil)
+			result = nil
 		default:
-			res = append(res, t.root.upsert(n))
+			result = t.root.upsert(n)
 		}
+		results = append(results, result)
 	}
-	return res
+	return results
 }
 
-func (t *Tree[E]) Delete(e *E) {
+func (t *Intrinsic[E]) Delete(e *E) {
 	if t == nil || e == nil {
 		return
 	}
 	t.root.delete(e)
-	// two children: promote the leftmost child of the right tree as the root.
-	// If it had a right child (can't have a left child since it is rightmost), promote it.
 }
 
 // IndexOf returns the position of the value among those in the tree.
 // If the value cannot be found, it will return 0, false, otherwise the position
 // starting at 0, and true.
-func (t *Tree[E]) IndexOf(e *E) (int, bool) {
+func (t *Intrinsic[E]) IndexOf(e *E) (int, bool) {
 	index, found := 0, false
 	t.WalkInOrder(func(x *E) {
 		if *x == *e {
@@ -159,8 +174,8 @@ func (t *Tree[E]) IndexOf(e *E) (int, bool) {
 	return index, found
 }
 
-// WalkInOrder in useful for search and listing nodes in order.
-func (t *Tree[E]) WalkInOrder(cb walkCB[E]) {
+// WalkInOrder is useful for search and listing nodes in order.
+func (t *Intrinsic[E]) WalkInOrder(cb container.WalkCB[E]) {
 	if t == nil {
 		return
 	}
@@ -168,23 +183,23 @@ func (t *Tree[E]) WalkInOrder(cb walkCB[E]) {
 }
 
 // WalkPostOrder in useful for deleting subtrees.
-func (t *Tree[E]) WalkPostOrder(fn func(e *E)) {
+func (t *Intrinsic[E]) WalkPostOrder(cb container.WalkCB[E]) {
 	if t == nil {
 		return
 	}
-	t.root.walkPostOrder(fn)
+	t.root.walkPostOrder(cb)
 }
 
 // WalkPreOrder is useful to clone the tree.
-func (t *Tree[E]) WalkPreOrder(cb walkCB[E]) {
+func (t *Intrinsic[E]) WalkPreOrder(cb container.WalkCB[E]) {
 	if t == nil {
 		return
 	}
 	t.root.walkPreOrder(cb)
 }
 
-func (t *Tree[E]) Clone() *Tree[E] {
-	clone := &Tree[E]{}
+func (t *Intrinsic[E]) Clone() container.BinarySearchTree[E] {
+	clone := &Intrinsic[E]{}
 	t.WalkPreOrder(func(e *E) {
 		clone.Upsert(e)
 	})
