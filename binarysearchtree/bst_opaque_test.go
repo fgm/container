@@ -8,7 +8,7 @@ import (
 )
 
 func TestBST_nil(t *testing.T) {
-	var bst *binarysearchtree.BST[int]
+	var bst *binarysearchtree.Tree[int]
 	bst.WalkInOrder(binarysearchtree.P)
 	bst.WalkPostOrder(binarysearchtree.P)
 	bst.WalkPreOrder(binarysearchtree.P)
@@ -17,35 +17,37 @@ func TestBST_nil(t *testing.T) {
 }
 
 func TestBST_Upsert(t *testing.T) {
-	one, six := 1, 6
 	bst := binarysearchtree.Simple()
-	actual := bst.Upsert(&one)
-	if actual == nil {
-		t.Fatalf("expected overwriting upsert to return value, got nil")
+	actual := bst.Upsert(&binarysearchtree.One)
+	if len(actual) != 1 {
+		t.Fatalf("expected overwriting upsert to return one value, got %v", actual)
 	}
-	if *actual != one {
-		t.Fatalf("expected overwriting upsert to return %d, got %d", one, *actual)
+	if *actual[0] != binarysearchtree.One {
+		t.Fatalf("expected overwriting upsert to return %d, got %d", binarysearchtree.One, *actual[0])
 	}
 
-	actual = bst.Upsert(&six)
-	if actual != nil {
-		t.Fatalf("expected non-overwriting upsert to return nil, got %d", *actual)
+	actual = bst.Upsert(&binarysearchtree.Six)
+	if len(actual) != 1 {
+		t.Fatalf("expected non-overwriting upsert to return one value, got %v", actual)
+	}
+	if actual[0] != nil {
+		t.Fatalf("expected non-overwriting upsert to return one nil, got %v", actual[0])
 	}
 }
 
 func TestBST_IndexOf(t *testing.T) {
 	bst := binarysearchtree.Simple()
-	checks := []struct {
+	checks := [...]struct {
 		input         int
 		expectedOK    bool
 		expectedIndex int
 	}{
-		{1, true, 0},
-		{2, true, 1},
-		{3, true, 2},
-		{4, true, 3},
-		{5, true, 4},
-		{6, false, 0},
+		{binarysearchtree.One, true, 0},
+		{binarysearchtree.Two, true, 1},
+		{binarysearchtree.Three, true, 2},
+		{binarysearchtree.Four, true, 3},
+		{binarysearchtree.Five, true, 4},
+		{binarysearchtree.Six, false, 0},
 	}
 	for _, check := range checks {
 		t.Run(strconv.Itoa(check.input), func(t *testing.T) {
