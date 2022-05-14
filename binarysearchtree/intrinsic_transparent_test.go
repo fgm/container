@@ -3,6 +3,8 @@ package binarysearchtree
 import (
 	"fmt"
 	"testing"
+
+	"github.com/fgm/container"
 )
 
 var (
@@ -15,8 +17,8 @@ var (
 //     2   4
 //    /     \
 //   1       5
-func Simple() *Tree[int] {
-	simple := Tree[int]{}
+func Simple() container.BinarySearchTree[int] {
+	simple := Intrinsic[int]{}
 	simple.Upsert(&Three, &Two, &Four, &One, &Five)
 	return &simple
 }
@@ -27,8 +29,8 @@ func Simple() *Tree[int] {
 //     2   5
 //    /   / \
 //   1   4   6
-func HalfFull() *Tree[int] {
-	hf := Tree[int]{}
+func HalfFull() container.BinarySearchTree[int] {
+	hf := Intrinsic[int]{}
 	hf.Upsert(&Three, &Two, &Five, &One, &Four, &Six)
 	return &hf
 }
@@ -71,8 +73,8 @@ func ExampleBST_WalkPreOrder() {
 }
 
 func TestBST_Clone(t *testing.T) {
-	bst := Simple()
-	clone := bst.Clone()
+	bst := Simple().(*Intrinsic[int])
+	clone := bst.Clone().(*Intrinsic[int])
 	input := bst.root
 	output := clone.root
 	checks := [...]struct {

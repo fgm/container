@@ -2,10 +2,7 @@ module github.com/fgm/container
 
 go 1.24.7
 
-require (
-	github.com/google/go-cmp v0.7.0
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
-)
+require github.com/google/go-cmp v0.7.0
 
 require (
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect

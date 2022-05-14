@@ -1,6 +1,9 @@
 package container
 
-import "iter"
+import (
+	"cmp"
+	"iter"
+)
 
 // OrderedMap has the same API as a sync.Map for the specific case of OrderedMap[any, any].
 type OrderedMap[K comparable, V any] interface {
@@ -73,6 +76,8 @@ type Stack[E any] interface {
 // For concurrency-safe types, it is not atomic vs other operations,
 // meaning it MUST NOT be used to take decisions, but only as an observability/debugging tool.
 type Countable interface {
+	// Len returns the number of elements in a structure.
+	// Its complexity may be higher than O(1), e.g. O(n) when it relies on Enumerable.
 	Len() int
 }
 
@@ -87,3 +92,22 @@ type Set[E comparable] interface {
 	Intersection(other Set[E]) Set[E]
 	Difference(other Set[E]) Set[E]
 }
+
+// FIXME replace by an iterator-based version like the one in Set.Items.
+type Enumerable[E any] interface {
+	Elements() []E
+}
+
+// BinarySearchTree is a generic binary search tree implementation with no concurrency guarantees.
+// Instantiate by a zero value of the implementation.
+type BinarySearchTree[E cmp.Ordered] interface {
+	Clone() BinarySearchTree[E]
+	Delete(*E)
+	IndexOf(*E) (int, bool)
+	Upsert(...*E) []*E
+	WalkInOrder(cb WalkCB[E])
+	WalkPostOrder(cb WalkCB[E])
+	WalkPreOrder(cb WalkCB[E])
+}
+
+type WalkCB[E any] func(*E)
