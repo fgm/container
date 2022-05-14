@@ -106,5 +106,5 @@ The complete test coverage requires running not only the unit tests, but also
 the benchmarks, like:
 
 ```
-    go test -race -run=. -bench=. -coverprofile=cover.out -covermode=atomic ./...
+    go test -race -run=. -bench=. -benchtime=100ms -coverprofile=cover.out -covermode=atomic ./...
 ```
