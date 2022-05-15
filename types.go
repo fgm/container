@@ -105,9 +105,9 @@ type BinarySearchTree[E cmp.Ordered] interface {
 	Delete(*E)
 	IndexOf(*E) (int, bool)
 	Upsert(...*E) []*E
-	WalkInOrder(cb WalkCB[E])
-	WalkPostOrder(cb WalkCB[E])
-	WalkPreOrder(cb WalkCB[E])
+	WalkInOrder(cb WalkCB[E]) error
+	WalkPostOrder(cb WalkCB[E]) error
+	WalkPreOrder(cb WalkCB[E]) error
 }
 
-type WalkCB[E any] func(*E)
+type WalkCB[E any] func(*E) error
