@@ -35,8 +35,9 @@ func HalfFull() container.BinarySearchTree[int] {
 	return &hf
 }
 
-func P(e *int) {
-	_, _ = fmt.Println(*e)
+func P(e *int) error {
+	_, err := fmt.Println(*e)
+	return err
 }
 
 func ExampleBST_WalkInOrder() {
