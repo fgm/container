@@ -12,11 +12,12 @@ var (
 )
 
 // Simple builds this tree:
-//       3
-//      / \
-//     2   4
-//    /     \
-//   1       5
+//
+//	    3
+//	   / \
+//	  2   4
+//	 /     \
+//	1       5
 func Simple() container.BinarySearchTree[int] {
 	simple := Intrinsic[int]{}
 	simple.Upsert(&Three, &Two, &Four, &One, &Five)
@@ -24,22 +25,24 @@ func Simple() container.BinarySearchTree[int] {
 }
 
 // HalfFull builds this tree, which contains all deletion cases
-//       3
-//      / \
-//     2   5
-//    /   / \
-//   1   4   6
+//
+//	    3
+//	   / \
+//	  2   5
+//	 /   / \
+//	1   4   6
 func HalfFull() container.BinarySearchTree[int] {
 	hf := Intrinsic[int]{}
 	hf.Upsert(&Three, &Two, &Five, &One, &Four, &Six)
 	return &hf
 }
 
-func P(e *int) {
-	_, _ = fmt.Println(*e)
+func P(e *int) error {
+	_, err := fmt.Println(*e)
+	return err
 }
 
-func ExampleBST_WalkInOrder() {
+func ExampleIntrinsic_WalkInOrder() {
 	bst := Simple()
 	bst.WalkInOrder(P)
 	// Output:
@@ -50,7 +53,7 @@ func ExampleBST_WalkInOrder() {
 	// 5
 }
 
-func ExampleBST_WalkPostOrder() {
+func ExampleIntrinsic_WalkPostOrder() {
 	bst := Simple()
 	bst.WalkPostOrder(P)
 	// Output:
@@ -61,7 +64,7 @@ func ExampleBST_WalkPostOrder() {
 	// 3
 }
 
-func ExampleBST_WalkPreOrder() {
+func ExampleIntrinsic_WalkPreOrder() {
 	bst := Simple()
 	bst.WalkPreOrder(P)
 	// Output:
@@ -72,7 +75,7 @@ func ExampleBST_WalkPreOrder() {
 	// 5
 }
 
-func TestBST_Clone(t *testing.T) {
+func TestIntrinsic_Clone(t *testing.T) {
 	bst := Simple().(*Intrinsic[int])
 	clone := bst.Clone().(*Intrinsic[int])
 	input := bst.root

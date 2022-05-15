@@ -1,6 +1,8 @@
 package binarysearchtree_test
 
 import (
+	"fmt"
+	"log"
 	"strconv"
 	"testing"
 
@@ -104,6 +106,50 @@ func TestIntrinsic_Len(t *testing.T) {
 			}
 			if tree.Len() != check.expected {
 				t.Fatalf("Found len %d, but expected %d", tree.Len(), check.expected)
+			}
+		})
+	}
+}
+
+func TestIntrinsic_Walk_canceling(t *testing.T) {
+	tree := bst.Simple()
+	checks := [...]struct {
+		name                   string
+		walker                 func(cb container.WalkCB[int]) error
+		calls1, calls3, calls5 int
+	}{
+		{"in order", tree.WalkInOrder, 1, 3, 5},
+		{"post order", tree.WalkPostOrder, 1, 5, 3},
+		{"pre order", tree.WalkPreOrder, 3, 1, 5},
+	}
+	tree.WalkInOrder(func(e *int) error { log.Println(*e); return nil })
+	stopper := func(at int) container.WalkCB[int] {
+		called := 0
+		return container.WalkCB[int](func(e *int) error {
+			called++
+			if *e == at {
+				return fmt.Errorf("%d", called)
+			}
+			return nil
+		})
+	}
+	for _, check := range checks {
+		t.Run(check.name, func(t *testing.T) {
+			for _, val := range []struct {
+				input, expected int
+			}{
+				{1, check.calls1},
+				{3, check.calls3},
+				{5, check.calls5},
+			} {
+				err := check.walker(stopper(val.input))
+				actual, err := strconv.Atoi(err.Error())
+				if err != nil {
+					t.Fatalf("unexpected non-int error: %v", err)
+				}
+				if actual != val.expected {
+					t.Fatalf("got %d but expected %d", actual, val.expected)
+				}
 			}
 		})
 	}

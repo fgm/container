@@ -2,6 +2,7 @@ package binarysearchtree
 
 import (
 	"cmp"
+	"errors"
 
 	"github.com/fgm/container"
 )
@@ -68,43 +69,64 @@ func (n *node[E]) upsert(m *node[E]) *E {
 	}
 }
 
-func (n *node[E]) walkInOrder(cb container.WalkCB[E]) {
+func (n *node[E]) walkInOrder(cb container.WalkCB[E]) error {
+	var err error
 	if n == nil {
-		return
+		return nil
 	}
 	if n.left != nil {
-		n.left.walkInOrder(cb)
+		if err = n.left.walkInOrder(cb); err != nil {
+			return err
+		}
 	}
-	cb(n.data)
+	if err := cb(n.data); err != nil {
+		return err
+	}
 	if n.right != nil {
-		n.right.walkInOrder(cb)
+		if err = n.right.walkInOrder(cb); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (n *node[E]) walkPostOrder(cb container.WalkCB[E]) {
+func (n *node[E]) walkPostOrder(cb container.WalkCB[E]) error {
+	var err error
 	if n == nil {
-		return
+		return nil
 	}
 	if n.left != nil {
-		n.left.walkPostOrder(cb)
+		if err = n.left.walkPostOrder(cb); err != nil {
+			return err
+		}
 	}
 	if n.right != nil {
-		n.right.walkPostOrder(cb)
+		if err = n.right.walkPostOrder(cb); err != nil {
+			return err
+		}
 	}
-	cb(n.data)
+	return cb(n.data)
 }
 
-func (n *node[E]) walkPreOrder(cb container.WalkCB[E]) {
+func (n *node[E]) walkPreOrder(cb container.WalkCB[E]) error {
+	var err error
 	if n == nil {
-		return
+		return nil
 	}
-	cb(n.data)
+	if err := cb(n.data); err != nil {
+		return err
+	}
 	if n.left != nil {
-		n.left.walkPreOrder(cb)
+		if err = n.left.walkPreOrder(cb); err != nil {
+			return err
+		}
 	}
 	if n.right != nil {
-		n.right.walkPreOrder(cb)
+		if err = n.right.walkPreOrder(cb); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // Intrinsic holds nodes which are their own ordering key.
@@ -116,13 +138,13 @@ type Intrinsic[E cmp.Ordered] struct {
 // Complexity is O(n).
 func (t *Intrinsic[E]) Len() int {
 	l := 0
-	t.WalkPostOrder(func(_ *E) { l++ })
+	t.WalkPostOrder(func(_ *E) error { l++; return nil })
 	return l
 }
 
 func (t *Intrinsic[E]) Elements() []E {
 	var sl []E
-	t.WalkPreOrder(func(e *E) { sl = append(sl, *e) })
+	t.WalkPreOrder(func(e *E) error { sl = append(sl, *e); return nil })
 	return sl
 }
 
@@ -159,49 +181,50 @@ func (t *Intrinsic[E]) Delete(e *E) {
 // If the value cannot be found, it will return 0, false, otherwise the position
 // starting at 0, and true.
 func (t *Intrinsic[E]) IndexOf(e *E) (int, bool) {
-	index, found := 0, false
-	t.WalkInOrder(func(x *E) {
+	errFound := errors.New("found")
+	index := 0
+	err := t.WalkInOrder(func(x *E) error {
 		if *x == *e {
-			found = true
+			return errFound
 		}
-		if !found {
-			index++
-		}
+		index++
+		return nil
 	})
-	if !found {
-		index = 0
+	if err != errFound {
+		return 0, false
 	}
-	return index, found
+	return index, true
 }
 
 // WalkInOrder is useful for search and listing nodes in order.
-func (t *Intrinsic[E]) WalkInOrder(cb container.WalkCB[E]) {
+func (t *Intrinsic[E]) WalkInOrder(cb container.WalkCB[E]) error {
 	if t == nil {
-		return
+		return nil
 	}
-	t.root.walkInOrder(cb)
+	return t.root.walkInOrder(cb)
 }
 
 // WalkPostOrder in useful for deleting subtrees.
-func (t *Intrinsic[E]) WalkPostOrder(cb container.WalkCB[E]) {
+func (t *Intrinsic[E]) WalkPostOrder(cb container.WalkCB[E]) error {
 	if t == nil {
-		return
+		return nil
 	}
-	t.root.walkPostOrder(cb)
+	return t.root.walkPostOrder(cb)
 }
 
 // WalkPreOrder is useful to clone the tree.
-func (t *Intrinsic[E]) WalkPreOrder(cb container.WalkCB[E]) {
+func (t *Intrinsic[E]) WalkPreOrder(cb container.WalkCB[E]) error {
 	if t == nil {
-		return
+		return nil
 	}
-	t.root.walkPreOrder(cb)
+	return t.root.walkPreOrder(cb)
 }
 
 func (t *Intrinsic[E]) Clone() container.BinarySearchTree[E] {
 	clone := &Intrinsic[E]{}
-	t.WalkPreOrder(func(e *E) {
+	t.WalkPreOrder(func(e *E) error {
 		clone.Upsert(e)
+		return nil
 	})
 	return clone
 }
