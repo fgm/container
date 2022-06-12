@@ -1,5 +1,7 @@
 package container
 
+import "golang.org/x/exp/constraints"
+
 type OrderedMap[K comparable, V any] interface {
 	Delete(key K)
 	Load(key K) (value V, loaded bool)
@@ -29,5 +31,25 @@ type Stack[E any] interface {
 
 // Countable MAY be provided by some implementations.
 type Countable interface {
+	// Len returns the number of elements in a structure.
+	// Its complexity may be higher than O(1), e.g. O(n) when it relies on Enumerable.
 	Len() int
 }
+
+type Enumerable[E any] interface {
+	Elements() []E
+}
+
+// BinarySearchTree is a generic binary search tree implementation with no concurrency guarantees.
+// Instantiate by a zero value of the implementation.
+type BinarySearchTree[E constraints.Ordered] interface {
+	Clone() BinarySearchTree[E]
+	Delete(*E)
+	IndexOf(*E) (int, bool)
+	Upsert(...*E) []*E
+	WalkInOrder(cb WalkCB[E]) error
+	WalkPostOrder(cb WalkCB[E]) error
+	WalkPreOrder(cb WalkCB[E]) error
+}
+
+type WalkCB[E any] func(*E) error
