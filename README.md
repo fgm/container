@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/fgm/container)](https://goreportcard.com/report/github.com/fgm/container)
 
 This module contains minimal type-safe Ordered Map, Queue and Stack implementations 
-using Go 1.18 generics. 
+using Go generics. 
 
 ## Contents
 
@@ -26,7 +26,7 @@ Generally speaking, in terms of performance:
 
 See [BENCHARKS.md](BENCHMARKS.md) for details.
 
-## Use
+## Usage
 
 See complete listings in:
 
