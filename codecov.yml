@@ -1,0 +1,12 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 95%
+        threshold: 1%
+      # func main cannot be tested, so we reduce the coverage requirements.
+      main-go:
+        target: 75%
+        threshold: 5%
+        paths:
+          - "*/main.go"
