@@ -7,12 +7,13 @@ import (
 )
 
 type Slice[K comparable, V any] struct {
-	order []K
-	store map[K]V
+	order  []K
+	store  map[K]V
+	stable bool // true for stable, false for recency-based
 }
 
 // mustIndexOf may only be used with a key known to be present in the map.
-func (s Slice[K, V]) mustIndexOf(k K) int {
+func (s *Slice[K, V]) mustIndexOf(k K) int {
 	for i, ck := range s.order {
 		if ck == k {
 			return i
@@ -32,12 +33,16 @@ func (s *Slice[K, V]) Delete(k K) {
 	s.order = append(s.order[:index], s.order[index+1:]...)
 }
 
-func (s Slice[K, V]) Load(key K) (V, bool) {
+func (s *Slice[K, V]) Len() int {
+	return len(s.store)
+}
+
+func (s *Slice[K, V]) Load(key K) (V, bool) {
 	v, loaded := s.store[key]
 	return v, loaded
 }
 
-func (s Slice[K, V]) Range(f func(key K, value V) bool) {
+func (s *Slice[K, V]) Range(f func(key K, value V) bool) {
 	for _, k := range s.order {
 		v, loaded := s.store[k]
 		if !loaded {
@@ -57,17 +62,19 @@ func (s *Slice[K, V]) Store(k K, v V) {
 		return
 	}
 
-	index := s.mustIndexOf(k)
-	s.order = append(s.order[:index], s.order[index+1:]...)
-	s.order = append(s.order, k)
+	if !s.stable {
+		index := s.mustIndexOf(k)
+		s.order = append(s.order[:index], s.order[index+1:]...)
+		s.order = append(s.order, k)
+	}
 	s.store[k] = v
 }
 
-func NewSlice[K comparable, V any](sizeHint int) container.OrderedMap[K, V] {
+func NewSlice[K comparable, V any](sizeHint int, stable bool) container.OrderedMap[K, V] {
 	s := &Slice[K, V]{
-		order: make([]K, 0, sizeHint),
-		store: make(map[K]V, sizeHint),
+		stable: stable,
+		order:  make([]K, 0, sizeHint),
+		store:  make(map[K]V, sizeHint),
 	}
-
 	return s
 }

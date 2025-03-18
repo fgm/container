@@ -31,7 +31,7 @@ func main() {
 	}
 
 	fmt.Println("OrderedMap:")
-	var om = orderedmap.NewSlice[string, int](size)
+	var om = orderedmap.NewSlice[string, int](size, true)
 	for _, e := range input {
 		om.Store(e.key, e.value)
 	}
