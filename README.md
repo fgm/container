@@ -6,6 +6,9 @@
 This module contains minimal type-safe Ordered Map, Queue and Stack implementations 
 using Go generics. 
 
+The Ordered Map supports both stable (in-place) updates and recency-based ordering, 
+making it suitable both for highest performance (in-place), and for LRU caches (recency).
+
 ## Contents
 
 See the available types by underlying storage 
@@ -36,7 +39,8 @@ See complete listings in:
 ### Ordered Map
 
 ```go
-om := orderedmap.NewSlice[Key,Value](sizeHint)
+stable := true
+om := orderedmap.NewSlice[Key,Value](sizeHint, stable)
 om.Store(k, v)
 om.Range(func(k K, v V) bool { fmt.Println(k, v); return true })
 v, loaded := om.Load(k)
@@ -77,5 +81,5 @@ for i := 0; i < 2; i++ {
 The complete test coverage requires running not only the unit tests, but also
 the benchmarks, like:
 ```
-go test -race -run=. -bench=. -coverprofile=cover.out -covermode=atomic ./...
+    go test -race -run=. -bench=. -coverprofile=cover.out -covermode=atomic ./...
 ```
