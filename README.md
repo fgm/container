@@ -5,6 +5,7 @@
 [![github](https://github.com/fgm/container/actions/workflows/workflow.yml/badge.svg)](https://github.com/fgm/container/actions/workflows/workflow.yml)
 [![codecov](https://codecov.io/gh/fgm/container/branch/main/graph/badge.svg?token=8YYX1B720M)](https://codecov.io/gh/fgm/container)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/fgm/container/badge)](https://securityscorecards.dev/viewer/?uri=github.com/fgm/container)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10245/badge)](https://www.bestpractices.dev/projects/10245)
 
 This module contains minimal type-safe Ordered Map, Queue and Stack implementations
 using Go generics.
