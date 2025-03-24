@@ -1,17 +1,20 @@
 # Go containers
+
+[![GoDoc](https://pkg.go.dev/badge/github.com/fgm/container)](https://pkg.go.dev/github.com/fgm/container)
+[![Go Report Card](https://goreportcard.com/badge/github.com/fgm/container)](https://goreportcard.com/report/github.com/fgm/container)
 [![github](https://github.com/fgm/container/actions/workflows/workflow.yml/badge.svg)](https://github.com/fgm/container/actions/workflows/workflow.yml)
 [![codecov](https://codecov.io/gh/fgm/container/branch/main/graph/badge.svg?token=8YYX1B720M)](https://codecov.io/gh/fgm/container)
-[![Go Report Card](https://goreportcard.com/badge/github.com/fgm/container)](https://goreportcard.com/report/github.com/fgm/container)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/fgm/container/badge)](https://securityscorecards.dev/viewer/?uri=github.com/fgm/container)
 
-This module contains minimal type-safe Ordered Map, Queue and Stack implementations 
-using Go generics. 
+This module contains minimal type-safe Ordered Map, Queue and Stack implementations
+using Go generics.
 
-The Ordered Map supports both stable (in-place) updates and recency-based ordering, 
+The Ordered Map supports both stable (in-place) updates and recency-based ordering,
 making it suitable both for highest performance (in-place), and for LRU caches (recency).
 
 ## Contents
 
-See the available types by underlying storage 
+See the available types by underlying storage
 
 | Type       | Slice | List | List+sync.Pool | List+int. pool | Recommended          |
 |------------|:-----:|:----:|:--------------:|:--------------:|----------------------|
@@ -19,10 +22,11 @@ See the available types by underlying storage
 | Queue      |   Y   |  Y   |       Y        |       Y        | Slice with size hint |
 | Stack      |   Y   |  Y   |       Y        |       Y        | Slice with size hint |
 
-**CAVEAT**: All of these implementations are unsafe for concurrent execution,
+**CAVEAT**: In order to optimize performance, 
+all of these implementations are unsafe for concurrent execution,
 so they need protection in concurrency situations.
 
-Generally speaking, in terms of performance: 
+Generally speaking, in terms of performance:
 
 - Slice > list+internal pool > plain List > list+sync.Pool
 - Preallocated > not preallocated
