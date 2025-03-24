@@ -61,10 +61,6 @@ jobs:
           #     of the value entered here.
           publish_results: true
 
-      # Debug step to list files in the workspace
-      - name: List files in workspace
-        run: ls -l
-
       # Upload the results as artifacts (optional). Commenting out will disable uploads of run results in SARIF
       # format to the repository Actions tab.
       - name: "Upload artifact"
