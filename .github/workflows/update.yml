@@ -8,12 +8,23 @@ on:
   schedule:
     - cron: "0 2 * * 6" # 2am UTC, weekly on Saturday
 
+permissions:
+  contents: read
+
 jobs:
   dep_update:
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Install Go
         uses: actions/setup-go@v2
         with:
