@@ -7,7 +7,7 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/fgm/container/badge)](https://securityscorecards.dev/viewer/?uri=github.com/fgm/container)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10245/badge)](https://www.bestpractices.dev/projects/10245)
 
-This module contains minimal type-safe Ordered Map, Queue and Stack implementations
+This module contains minimal type-safe Ordered Map, Queue, Set and Stack implementations
 using Go generics.
 
 The Ordered Map supports both stable (in-place) updates and recency-based ordering,
@@ -17,13 +17,14 @@ making it suitable both for highest performance (in-place), and for LRU caches (
 
 See the available types by underlying storage
 
-| Type       | Slice | List | List+sync.Pool | List+int. pool | Recommended          |
-|------------|:-----:|:----:|:--------------:|:--------------:|----------------------|
-| OrderedMap |   Y   |      |                |                | Slice with size hint |
-| Queue      |   Y   |  Y   |       Y        |       Y        | Slice with size hint |
-| Stack      |   Y   |  Y   |       Y        |       Y        | Slice with size hint |
+| Type       | Slice | Map | List | List+sync.Pool | List+int. pool | Recommended          |
+|------------|:-----:|:---:|:----:|:--------------:|:--------------:|----------------------|
+| OrderedMap |   Y   |     |      |                |                | Slice with size hint |
+| Queue      |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
+| Set        |       |  Y  |      |                |                | Map with size hint
+| Stack      |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
 
-**CAVEAT**: In order to optimize performance, 
+**CAVEAT**: In order to optimize performance,
 all of these implementations are unsafe for concurrent execution,
 so they need protection in concurrency situations.
 
@@ -45,9 +46,9 @@ See complete listings in:
 
 ```go
 stable := true
-om := orderedmap.NewSlice[Key,Value](sizeHint, stable)
+om := orderedmap.NewSlice[Key, Value](sizeHint, stable)
 om.Store(k, v)
-om.Range(func(k K, v V) bool { fmt.Println(k, v); return true })
+om.Range(func (k K, v V) bool { fmt.Println(k, v); return true })
 v, loaded := om.Load(k)
 if !loaded { fmt.Printf("No entry for key %v\n", k)}
 om.Delete(k) // Idempotent: does not fail on nonexistent keys.
@@ -60,11 +61,11 @@ var e Element
 q := queue.NewSliceQueue[Element](sizeHint)
 q.Enqueue(e)
 if lq, ok := q.(container.Countable); ok {
-    fmt.Printf("elements in queue: %d\n", lq.Len())
+fmt.Printf("elements in queue: %d\n", lq.Len())
 }
 for i := 0; i < 2; i++ {
-    e, ok := q.Dequeue()
-    fmt.Printf("Element: %v, ok: %t\n", e, ok)
+e, ok := q.Dequeue()
+fmt.Printf("Element: %v, ok: %t\n", e, ok)
 }
 ```
 
@@ -76,10 +77,10 @@ s := set.NewTrivial[Element](sizeHint)
 s.Add(e)
 s.Add(e)
 if cs, ok := q.(container.Countable); ok {
-    fmt.Printf("elements in set: %d\n", cs.Len()) // 1
+fmt.Printf("elements in set: %d\n", cs.Len()) // 1
 }
 for e := range s.Items() {
-    fmt.Fprintln(w, e)
+fmt.Fprintln(w, e)
 }
 
 ```
@@ -90,11 +91,11 @@ for e := range s.Items() {
 s := stack.NewSliceStack[Element](sizeHint)
 s.Push(e)
 if ls, ok := s.(container.Countable); ok {
-    fmt.Printf("elements in stack: %d\n", ls.Len())
+fmt.Printf("elements in stack: %d\n", ls.Len())
 }
 for i := 0; i < 2; i++ {
-    e, ok := s.Pop()
-    fmt.Printf("Element: %v, ok: %t\n", e, ok)
+e, ok := s.Pop()
+fmt.Printf("Element: %v, ok: %t\n", e, ok)
 }
 ```
 
@@ -102,6 +103,7 @@ for i := 0; i < 2; i++ {
 
 The complete test coverage requires running not only the unit tests, but also
 the benchmarks, like:
+
 ```
     go test -race -run=. -bench=. -coverprofile=cover.out -covermode=atomic ./...
 ```
