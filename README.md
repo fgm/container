@@ -56,6 +56,7 @@ om.Delete(k) // Idempotent: does not fail on nonexistent keys.
 ### Queues
 
 ```go
+var e Element
 q := queue.NewSliceQueue[Element](sizeHint)
 q.Enqueue(e)
 if lq, ok := q.(container.Countable); ok {
@@ -65,6 +66,22 @@ for i := 0; i < 2; i++ {
     e, ok := q.Dequeue()
     fmt.Printf("Element: %v, ok: %t\n", e, ok)
 }
+```
+
+### Sets
+
+```go
+var e Element
+s := set.NewTrivial[Element](sizeHint)
+s.Add(e)
+s.Add(e)
+if cs, ok := q.(container.Countable); ok {
+    fmt.Printf("elements in set: %d\n", cs.Len()) // 1
+}
+for e := range s.Items() {
+    fmt.Fprintln(w, e)
+}
+
 ```
 
 ### Stacks

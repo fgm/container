@@ -1,5 +1,7 @@
 package container
 
+import "iter"
+
 type OrderedMap[K comparable, V any] interface {
 	Delete(key K)
 	Load(key K) (value V, loaded bool)
@@ -30,4 +32,16 @@ type Stack[E any] interface {
 // Countable MAY be provided by some implementations.
 type Countable interface {
 	Len() int
+}
+
+type Set[E comparable] interface {
+	Add(item E) (found bool)
+	Remove(item E) (found bool)
+	Contains(item E) bool
+	Clear() (count int)
+	Items() iter.Seq[E]
+
+	Union(other Set[E]) Set[E]
+	Intersection(other Set[E]) Set[E]
+	Difference(other Set[E]) Set[E]
 }
