@@ -42,12 +42,12 @@ func TestRealMain(t *testing.T) {
 	sort.Strings(actualStandardMap)
 	actualStandardOutput := strings.Join(actualStandardMap, "\n") + "\n"
 	if actualStandardOutput != expectedStandardOutput {
-		t.Fatalf(cmp.Diff(expectedStandardOutput, actualStandardOutput))
+		t.Fatal(cmp.Diff(expectedStandardOutput, actualStandardOutput))
 	}
 
 	// Ordered map is ordered, we check the whole output.
 	actualOrderedOutput := w2.String()
 	if actualOrderedOutput != expectedOrderedOutput {
-		t.Fatalf(cmp.Diff(w2.String(), expectedOrderedOutput))
+		t.Fatal(cmp.Diff(w2.String(), expectedOrderedOutput))
 	}
 }
