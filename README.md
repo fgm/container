@@ -21,7 +21,7 @@ See the available types by underlying storage
 |------------|:-----:|:---:|:----:|:--------------:|:--------------:|----------------------|
 | OrderedMap |   Y   |     |      |                |                | Slice with size hint |
 | Queue      |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
-| Set        |       |  Y  |      |                |                | Map with size hint
+| Set        |       |  Y  |      |                |                | Map with size hint   |
 | Stack      |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
 
 **CAVEAT**: In order to optimize performance,
@@ -39,8 +39,9 @@ See [BENCHARKS.md](BENCHMARKS.md) for details.
 
 See complete listings in:
 
-- [`cmd/orderedmap/example.go`](cmd/orderedmap/example.go)
-- [`cmd/queuestack/example.go`](cmd/queuestack/example.go)
+- [`cmd/orderedmap`](cmd/orderedmap/real_main.go)
+- [`cmd/queuestack`](cmd/queuestack/real_main.go)
+- [`cmd/queuestack`](cmd/set/real_main.go)
 
 ### Ordered Map
 
