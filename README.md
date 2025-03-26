@@ -41,7 +41,7 @@ See complete listings in:
 
 - [`cmd/orderedmap`](cmd/orderedmap/real_main.go)
 - [`cmd/queuestack`](cmd/queuestack/real_main.go)
-- [`cmd/queuestack`](cmd/set/real_main.go)
+- [`cmd/set`](cmd/set/real_main.go)
 
 ### Ordered Map
 
