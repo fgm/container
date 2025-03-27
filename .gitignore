@@ -13,6 +13,8 @@
 
 # IDE extras
 /.idea/aws.xml
+/.run
+/.idea/runConfigurations
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

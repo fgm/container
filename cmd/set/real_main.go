@@ -17,7 +17,7 @@ const sizeHint = 100
 func realMain(w io.Writer) int {
 	var e Element = 42
 
-	s := set.NewTrivial[Element](sizeHint)
+	s := set.NewBasicMap[Element](sizeHint)
 	// Add squares.
 	for i := range e {
 		s.Add(i * i)
