@@ -10,17 +10,17 @@ import (
 
 type unit = struct{}
 
-// Trivial is the textbook Go implementation of a Go set using generics.
+// BasicMap is the textbook Go implementation of a Go set using generics.
 //
 // It is not concurrency-safe.
 // For performance optimization, its union/intersection/difference operations
 // may return the receiver or the argument instead of cloning.
-type Trivial[E comparable] struct {
+type BasicMap[E comparable] struct {
 	items map[E]unit
 }
 
 // String returns an idiomatic unordered representation of the set items.
-func (s *Trivial[E]) String() string {
+func (s *BasicMap[E]) String() string {
 	// Shortcut empty case.
 	if s == nil || len(s.items) == 0 {
 		return "{}"
@@ -45,7 +45,7 @@ func (s *Trivial[E]) String() string {
 }
 
 // Len returns the number of items in the Set.
-func (s *Trivial[E]) Len() int {
+func (s *BasicMap[E]) Len() int {
 	if s == nil {
 		return 0
 	}
@@ -53,7 +53,7 @@ func (s *Trivial[E]) Len() int {
 }
 
 // Add adds an item to the set. Returns true if the item was already present.
-func (s *Trivial[E]) Add(item E) (found bool) {
+func (s *BasicMap[E]) Add(item E) (found bool) {
 	if s == nil {
 		return false
 	}
@@ -64,7 +64,7 @@ func (s *Trivial[E]) Add(item E) (found bool) {
 
 // Remove removes an item from the set.
 // It does not fail if the item was not present, and returns true if it was.
-func (s *Trivial[E]) Remove(item E) (found bool) {
+func (s *BasicMap[E]) Remove(item E) (found bool) {
 	if s == nil {
 		return false
 	}
@@ -74,7 +74,7 @@ func (s *Trivial[E]) Remove(item E) (found bool) {
 }
 
 // Contains returns true if the item is present in the set.
-func (s *Trivial[E]) Contains(item E) bool {
+func (s *BasicMap[E]) Contains(item E) bool {
 	if s == nil {
 		return false
 	}
@@ -83,7 +83,7 @@ func (s *Trivial[E]) Contains(item E) bool {
 }
 
 // Clear removes all items from the set and returns the number of items removed.
-func (s *Trivial[E]) Clear() (count int) {
+func (s *BasicMap[E]) Clear() (count int) {
 	if s == nil {
 		return 0
 	}
@@ -94,7 +94,7 @@ func (s *Trivial[E]) Clear() (count int) {
 }
 
 // Items returns an unordered iterator over the set'set elements.
-func (s *Trivial[E]) Items() iter.Seq[E] {
+func (s *BasicMap[E]) Items() iter.Seq[E] {
 	if s == nil {
 		return func(yield func(E) bool) {}
 	}
@@ -111,10 +111,10 @@ func (s *Trivial[E]) Items() iter.Seq[E] {
 // Union returns a new set containing elements present in either set.
 //
 // Note that it may return one of its arguments without creating a clone.
-func (s *Trivial[E]) Union(other container.Set[E]) container.Set[E] {
+func (s *BasicMap[E]) Union(other container.Set[E]) container.Set[E] {
 	// Shortcut degenerate cases.
 	if s == nil && other == nil {
-		return NewTrivial[E](0)
+		return NewBasicMap[E](0)
 	}
 	if s == nil {
 		return other
@@ -130,7 +130,7 @@ func (s *Trivial[E]) Union(other container.Set[E]) container.Set[E] {
 	}
 
 	// Non-degenerate case. It will be at least as long as the receiver.
-	result := &Trivial[E]{items: make(map[E]unit, s.Len())}
+	result := &BasicMap[E]{items: make(map[E]unit, s.Len())}
 
 	// Add all items from this set
 	for item := range s.items {
@@ -146,10 +146,10 @@ func (s *Trivial[E]) Union(other container.Set[E]) container.Set[E] {
 }
 
 // Intersection returns a new set containing elements present in both sets.
-func (s *Trivial[E]) Intersection(other container.Set[E]) container.Set[E] {
+func (s *BasicMap[E]) Intersection(other container.Set[E]) container.Set[E] {
 	// Shortcut degenerate cases.
 	if s == nil || other == nil {
-		return NewTrivial[E](0)
+		return NewBasicMap[E](0)
 	}
 	if s.Len() == 0 {
 		return s
@@ -159,11 +159,11 @@ func (s *Trivial[E]) Intersection(other container.Set[E]) container.Set[E] {
 	}
 
 	// Non-degenerate case with size optimization
-	var result *Trivial[E]
+	var result *BasicMap[E]
 	if other, ok := other.(container.Countable); ok {
-		result = &Trivial[E]{items: make(map[E]unit, min(s.Len(), other.Len()))}
+		result = &BasicMap[E]{items: make(map[E]unit, min(s.Len(), other.Len()))}
 	} else {
-		result = &Trivial[E]{items: make(map[E]unit)}
+		result = &BasicMap[E]{items: make(map[E]unit)}
 	}
 
 	// Add items that exist in both sets
@@ -177,10 +177,10 @@ func (s *Trivial[E]) Intersection(other container.Set[E]) container.Set[E] {
 }
 
 // Difference returns a new set containing elements present in this set but not in the other.
-func (s *Trivial[E]) Difference(other container.Set[E]) container.Set[E] {
+func (s *BasicMap[E]) Difference(other container.Set[E]) container.Set[E] {
 	// Shortcut degenerate cases.
 	if s == nil {
-		return NewTrivial[E](0)
+		return NewBasicMap[E](0)
 	}
 	if other == nil || s.Len() == 0 {
 		return s
@@ -190,7 +190,7 @@ func (s *Trivial[E]) Difference(other container.Set[E]) container.Set[E] {
 	}
 
 	// Non-degenerate case.
-	result := &Trivial[E]{items: make(map[E]unit, s.Len())}
+	result := &BasicMap[E]{items: make(map[E]unit, s.Len())}
 
 	// Add items that exist in this set but not in other
 	for item := range s.items {
@@ -202,7 +202,7 @@ func (s *Trivial[E]) Difference(other container.Set[E]) container.Set[E] {
 	return result
 }
 
-// NewTrivial returns a ready-for-use container.Set implemented by the Trivial type.
-func NewTrivial[E comparable](sizeHint int) container.Set[E] {
-	return &Trivial[E]{make(map[E]unit, sizeHint)}
+// NewBasicMap returns a ready-for-use container.Set implemented by the BasicMap type.
+func NewBasicMap[E comparable](sizeHint int) container.Set[E] {
+	return &BasicMap[E]{make(map[E]unit, sizeHint)}
 }
