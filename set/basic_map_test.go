@@ -11,6 +11,8 @@ import (
 	"github.com/fgm/container/set"
 )
 
+type unit = struct{}
+
 type testIntSet interface {
 	container.Set[int]
 	container.Countable
@@ -19,11 +21,11 @@ type testIntSet interface {
 
 // nilSet provides a typed nil that can be used as a receiver.
 func nilSet() testIntSet {
-	var ns *set.Trivial[int]
+	var ns *set.BasicMap[int]
 	return ns
 }
 
-func TestTrivial_Basic(t *testing.T) {
+func TestBasicMap(t *testing.T) {
 	tests := []struct {
 		name string
 		fn   func(*testing.T)
@@ -67,7 +69,7 @@ func testNilReceiver(t *testing.T) {
 }
 
 func testEmptySet(t *testing.T) {
-	s := set.NewTrivial[int](0)
+	s := set.NewBasicMap[int](0)
 	c, ok := s.(container.Countable)
 	if !ok {
 		t.Fatalf("expected a countable implementation")
@@ -87,7 +89,7 @@ func testEmptySet(t *testing.T) {
 }
 
 func testSingleElement(t *testing.T) {
-	s := set.NewTrivial[int](1)
+	s := set.NewBasicMap[int](1)
 	if found := s.Add(1); found {
 		t.Errorf("Add to empty set should return false")
 	}
@@ -113,7 +115,7 @@ func testSingleElement(t *testing.T) {
 }
 
 func testMultipleElements(t *testing.T) {
-	s := set.NewTrivial[int](3)
+	s := set.NewBasicMap[int](3)
 	elements := []int{1, 2, 3}
 
 	for _, e := range elements {
@@ -149,7 +151,7 @@ func testMultipleElements(t *testing.T) {
 	}
 }
 
-func TestTrivial_SetOperations(t *testing.T) {
+func TestBasicMap_SetOperations(t *testing.T) {
 	tests := []struct {
 		name string
 		fn   func(*testing.T)
@@ -174,11 +176,11 @@ func testUnion(t *testing.T) {
 		// nil without a type is not a valid receiver type.
 		{"nilSet + nil", nilSet(), nil, 0},
 		{"nilSet + nilSet", nilSet(), nilSet(), 0},
-		{"nilSet + empty", nilSet(), set.NewTrivial[int](0), 0},
-		{"nilSet + empty", nilSet(), set.NewTrivial[int](0), 0},
-		{"empty + nil", set.NewTrivial[int](0), nil, 0},
-		{"empty + nilSet", set.NewTrivial[int](0), nilSet(), 0},
-		{"empty + empty", set.NewTrivial[int](0), set.NewTrivial[int](0), 0},
+		{"nilSet + empty", nilSet(), set.NewBasicMap[int](0), 0},
+		{"nilSet + empty", nilSet(), set.NewBasicMap[int](0), 0},
+		{"empty + nil", set.NewBasicMap[int](0), nil, 0},
+		{"empty + nilSet", set.NewBasicMap[int](0), nilSet(), 0},
+		{"empty + empty", set.NewBasicMap[int](0), set.NewBasicMap[int](0), 0},
 		{"nilSet + nonempty", nilSet(), createSet(t, 1, 2), 2},
 		{"nonempty + nil", createSet(t, 1, 2), nil, 2},
 		{"nonempty + nilSet", createSet(t, 1, 2), nilSet(), 2},
@@ -211,10 +213,10 @@ func testIntersection(t *testing.T) {
 		// nil without a type is not a valid receiver type.
 		{"nilSet + nil", nilSet(), nil, 0},
 		{"nilSet + nilSet", nilSet(), nilSet(), 0},
-		{"nilSet + empty", nilSet(), set.NewTrivial[int](0), 0},
-		{"empty + nil", set.NewTrivial[int](0), nil, 0},
-		{"empty + nilSet", set.NewTrivial[int](0), nilSet(), 0},
-		{"empty + empty", set.NewTrivial[int](0), set.NewTrivial[int](0), 0},
+		{"nilSet + empty", nilSet(), set.NewBasicMap[int](0), 0},
+		{"empty + nil", set.NewBasicMap[int](0), nil, 0},
+		{"empty + nilSet", set.NewBasicMap[int](0), nilSet(), 0},
+		{"empty + empty", set.NewBasicMap[int](0), set.NewBasicMap[int](0), 0},
 		{"nilSet + nonempty", nilSet(), createSet(t, 1, 2), 0},
 		{"nonempty + nil", createSet(t, 1, 2), nil, 0},
 		{"nonempty + nilSet", createSet(t, 1, 2), nilSet(), 0},
@@ -245,13 +247,13 @@ func testDifference(t *testing.T) {
 	}{
 		// nil without a type is not a valid receiver type.
 		{"nilSet - nilSet", nilSet(), nilSet(), 0},
-		{"nilSet - empty", nilSet(), set.NewTrivial[int](0), 0},
-		{"empty - nil", set.NewTrivial[int](0), nil, 0},
-		{"empty - nilSet", set.NewTrivial[int](0), nilSet(), 0},
-		{"empty - empty", set.NewTrivial[int](0), set.NewTrivial[int](0), 0},
+		{"nilSet - empty", nilSet(), set.NewBasicMap[int](0), 0},
+		{"empty - nil", set.NewBasicMap[int](0), nil, 0},
+		{"empty - nilSet", set.NewBasicMap[int](0), nilSet(), 0},
+		{"empty - empty", set.NewBasicMap[int](0), set.NewBasicMap[int](0), 0},
 		{"nonempty - nil", createSet(t, 1, 2), nil, 2},
 		{"nonempty - nilSet", createSet(t, 1, 2), nilSet(), 2},
-		{"nonempty - empty", createSet(t, 1, 2), set.NewTrivial[int](0), 2},
+		{"nonempty - empty", createSet(t, 1, 2), set.NewBasicMap[int](0), 2},
 		{"disjoint", createSet(t, 1, 2), createSet(t, 3, 4), 2},
 		{"overlapping", createSet(t, 1, 2), createSet(t, 2, 3), 1},
 	}
@@ -271,27 +273,27 @@ func testDifference(t *testing.T) {
 }
 
 // Helper function to create a set with given elements
-func createSet(tb testing.TB, elements ...int) *set.Trivial[int] {
+func createSet(tb testing.TB, elements ...int) *set.BasicMap[int] {
 	tb.Helper()
-	s := set.NewTrivial[int](len(elements))
+	s := set.NewBasicMap[int](len(elements))
 	for _, e := range elements {
 		s.Add(e)
 	}
-	tr, ok := s.(*set.Trivial[int])
+	tr, ok := s.(*set.BasicMap[int])
 	if !ok {
-		tb.Fatalf("expected a set.Trivial implementation")
+		tb.Fatalf("expected a set.BasicMap implementation")
 	}
 	return tr
 }
 
-func TestTrivial_String(t *testing.T) {
+func TestBasicMap_String(t *testing.T) {
 	tests := []struct {
 		name     string
 		set      testIntSet
 		elements []int
 	}{
 		{"nil set", nilSet(), nil},
-		{"empty set", set.NewTrivial[int](0).(testIntSet), nil},
+		{"empty set", set.NewBasicMap[int](0).(testIntSet), nil},
 		{"single element", createSet(t, 42), []int{42}},
 		{"multiple elements", createSet(t, 1, 2, 3), []int{1, 2, 3}},
 	}
@@ -366,9 +368,9 @@ func TestTrivial_String(t *testing.T) {
 	}
 }
 
-func TestTrivial_ItemsEarlyTermination(t *testing.T) {
+func TestBasicMap_ItemsEarlyTermination(t *testing.T) {
 	// Create a set with multiple elements
-	s := set.NewTrivial[int](5)
+	s := set.NewBasicMap[int](5)
 	for i := 1; i <= 5; i++ {
 		s.Add(i)
 	}
@@ -388,12 +390,12 @@ func TestTrivial_ItemsEarlyTermination(t *testing.T) {
 	}
 }
 
-func TestTrivial_IntersectionNonCountable(t *testing.T) {
+func TestBasicMap_IntersectionNonCountable(t *testing.T) {
 	// Create a mock set that implements Set[int] but not Countable
 	mock := &mockNonCountableSet{elements: map[int]bool{1: true, 2: true}}
 
 	// Create a normal set with some overlapping elements
-	s := set.NewTrivial[int](3)
+	s := set.NewBasicMap[int](3)
 	s.Add(1)
 	s.Add(3)
 
@@ -463,4 +465,146 @@ func (m *mockNonCountableSet) Intersection(other container.Set[int]) container.S
 
 func (m *mockNonCountableSet) Difference(other container.Set[int]) container.Set[int] {
 	return nil // not needed for this test
+}
+
+func FuzzBasicMapAdd(f *testing.F) {
+	// Add some seed corpus
+	f.Add(1, 2, 3)                    // Distinct values
+	f.Add(0, 0, 1)                    // Some duplicate values
+	f.Add(-1, -1, -1)                 // Only duplicates
+	f.Add(2147483647, -2147483648, 0) // Int max/min values
+
+	f.Fuzz(func(t *testing.T, a, b, c int) {
+		s := set.NewBasicMap[int](3)
+
+		// Test adding elements
+		firstFound := s.Add(a)
+		if firstFound {
+			t.Errorf("First Add of %d should return false", a)
+		}
+
+		secondFound := s.Add(a)
+		if !secondFound {
+			t.Errorf("Second Add of %d should return true", a)
+		}
+
+		s.Add(b)
+		s.Add(c)
+
+		// Verify all elements were added correctly
+		if !s.Contains(a) {
+			t.Errorf("Set should contain %d", a)
+		}
+		if !s.Contains(b) {
+			t.Errorf("Set should contain %d", b)
+		}
+		if !s.Contains(c) {
+			t.Errorf("Set should contain %d", c)
+		}
+
+		// Verify length is correct (accounting for duplicates)
+		expectedLen := len(map[int]unit{a: {}, b: {}, c: {}})
+		countable := s.(container.Countable)
+		if countable.Len() != expectedLen {
+			t.Errorf("Expected length %d, got %d", expectedLen, countable.Len())
+		}
+	})
+}
+
+func FuzzBasicMapUnion(f *testing.F) {
+	// Add some seed corpus
+	f.Add(1, 2, 3, 4)     // All distinct
+	f.Add(-1, -1, -1, -1) // All duplicates
+	f.Add(0, 1, 0, 2)     // Intermixed duplicates
+
+	f.Fuzz(func(t *testing.T, a, b, c, d int) {
+		// Create two sets with potentially overlapping elements
+		s1 := set.NewBasicMap[int](2)
+		s1.Add(a)
+		s1.Add(b)
+
+		s2 := set.NewBasicMap[int](2)
+		s2.Add(c)
+		s2.Add(d)
+
+		// Perform union operation
+		result := s1.Union(s2)
+
+		// Verify the result contains all elements from both sets
+		if !result.Contains(a) {
+			t.Errorf("Union should contain %d from first set", a)
+		}
+		if !result.Contains(b) {
+			t.Errorf("Union should contain %d from first set", b)
+		}
+		if !result.Contains(c) {
+			t.Errorf("Union should contain %d from second set", c)
+		}
+		if !result.Contains(d) {
+			t.Errorf("Union should contain %d from second set", d)
+		}
+
+		// Verify size is correct (accounting for duplicates)
+		expectedLen := len(map[int]unit{a: {}, b: {}, c: {}, d: {}})
+		countable := result.(container.Countable)
+		if countable.Len() != expectedLen {
+			t.Errorf("Expected union length %d, got %d", expectedLen, countable.Len())
+		}
+	})
+}
+
+func FuzzBasicMapItems(f *testing.F) {
+	// Add some seed corpus.
+	f.Add(1, 2, 3)                    // Distinct values.
+	f.Add(0, 0, 1)                    // Some duplicate values.
+	f.Add(-1, -1, -1)                 // Only duplicates.
+	f.Add(2147483647, -2147483648, 0) // Int max/min values.
+
+	f.Fuzz(func(t *testing.T, a, b, c int) {
+		// Create a set with the fuzzed elements
+		s := set.NewBasicMap[int](3)
+		s.Add(a)
+		s.Add(b)
+		s.Add(c)
+
+		// Create a map of expected elements (accounting for duplicates).
+		expected := map[int]unit{a: {}, b: {}, c: {}}
+
+		// Collect all items from the iterator.
+		actual := make(map[int]unit)
+		for item := range s.Items() {
+			actual[item] = unit{}
+		}
+
+		// Verify that the actual items match the expected elements.
+		if len(actual) != len(expected) {
+			t.Errorf("Expected %d unique elements, got %d", len(expected), len(actual))
+		}
+
+		// Verify each actual element was expected
+		for item := range actual {
+			if _, ok := expected[item]; !ok {
+				t.Errorf("Iterator yielded unexpected element: %v", item)
+			}
+		}
+
+		// Verify each expected element was actual
+		for item := range expected {
+			if _, ok := actual[item]; !ok {
+				t.Errorf("Iterator failed to yield expected element: %v", item)
+			}
+		}
+
+		// Test early termination
+		count := 0
+		for range s.Items() {
+			count++
+			break // Stop after first item
+		}
+
+		// Verify early termination worked correctly
+		if count != 1 && len(expected) > 0 {
+			t.Errorf("Early termination: Expected 1 item before breaking, got %d", count)
+		}
+	})
 }

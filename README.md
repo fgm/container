@@ -74,7 +74,7 @@ fmt.Printf("Element: %v, ok: %t\n", e, ok)
 
 ```go
 var e Element
-s := set.NewTrivial[Element](sizeHint)
+s := set.NewBasicMap[Element](sizeHint)
 s.Add(e)
 s.Add(e)
 if cs, ok := q.(container.Countable); ok {
@@ -101,6 +101,7 @@ fmt.Printf("Element: %v, ok: %t\n", e, ok)
 ```
 
 ### Running tests
+#### Normal tests: unit and benchmarks
 
 The complete test coverage requires running not only the unit tests, but also
 the benchmarks, like:
@@ -108,3 +109,19 @@ the benchmarks, like:
 ```
     go test -race -run=. -bench=. -coverprofile=cover.out -covermode=atomic ./...
 ```
+
+This will also run the fuzz tests in unit test mode, without triggering the fuzzing logic.
+
+
+#### Fuzz tests
+
+Fuzz tests are not run by CI, but you can run them on-demand during development with:
+
+```
+    go test -run='^$' -fuzz='^\QFuzzBasicMapAdd\E$'   -fuzztime=20s ./set
+    go test -run='^$' -fuzz='^\QFuzzBasicMapItems\E$' -fuzztime=20s ./set
+    go test -run='^$' -fuzz='^\QFuzzBasicMapUnion\E$' -fuzztime=20s ./set
+``` 
+
+- Adjust `-fuzztime` duration as relevant: 20 seconds is just a smoke test.
+- Be sure to escape the `^$` and `\Q\E` characters in the `-fuzz` argument in your shell.
