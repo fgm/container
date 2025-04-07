@@ -7,24 +7,29 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/fgm/container/badge)](https://securityscorecards.dev/viewer/?uri=github.com/fgm/container)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10245/badge)](https://www.bestpractices.dev/projects/10245)
 
-This module contains minimal type-safe Ordered Map, Queue, Set and Stack implementations
-using Go generics.
+This module contains minimal type-safe Double-ended queue, Ordered Map, Queue, Set and Stack implementations
+using Go generics, as well as a concurrent-safe WaitableQueue.
 
 The Ordered Map supports both stable (in-place) updates and recency-based ordering,
 making it suitable both for highest performance (in-place), and for LRU caches (recency).
+
+The double-ended queue is currently a fork of the Go stdlib [container/list](https://pkg.go.dev/container/list) package,
+replacing the `any` value with a type parameter for type safety.
+This API is not stable, as it differs from the other packages,
+and will be deprecated when a simpler one is found, more in line with the other packages.
 
 ## Contents
 
 See the available types by underlying storage
 
-| Type          | Slice | Map | List | List+sync.Pool | List+int. pool | Recommended          |
-|---------------|:-----:|:---:|:----:|:--------------:|:--------------:|----------------------|
-| OrderedMap    |   Y   |     |      |                |                | Slice with size hint |
-| Queue         |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
-| WaitableQueue |   Y   |     |      |                |                | Slice with size hint |
-| Set           |       |  Y  |      |                |                | Map with size hint   |
-| Stack         |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
-
+| Type               | Slice | Map | List | List+sync.Pool | List+int. pool | Recommended           |
+|--------------------|:-----:|:---:|:----:|:--------------:|:--------------:|-----------------------|
+| Double-ended queue |       |     |  Y   |                |                | Type-safe stdlib fork |
+| OrderedMap         |   Y   |     |      |                |                | Slice with size hint  |
+| Queue              |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint  |
+| WaitableQueue      |   Y   |     |      |                |                | Slice with size hint  |
+| Set                |       |  Y  |      |                |                | Map with size hint    |
+| Stack              |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint  |
 
 **CAVEAT**: In order to optimize performance, except for WaitableQueue,
 all of these implementations are unsafe for concurrent execution,
@@ -43,9 +48,11 @@ See [BENCHARKS.md](BENCHMARKS.md) for details.
 
 See complete listings in:
 
+- [`cmd/list`](cmd/list/real_main.go)
 - [`cmd/orderedmap`](cmd/orderedmap/real_main.go)
 - [`cmd/queuestack`](cmd/queuestack/real_main.go)
 - [`cmd/set`](cmd/set/real_main.go)
+- [`cmd/waitablequeue`](cmd/waitablequeue/real_main.go)
 
 ### Ordered Map
 
@@ -161,3 +168,11 @@ Fuzz tests are not run by CI, but you can run them on-demand during development 
 
 - Adjust `-fuzztime` duration as relevant: 20 seconds is just a smoke test.
 - Be sure to escape the `\Q\E` characters in the `-fuzz` argument in your shell.
+
+## Licensing
+
+- In the directory [container](container) and below,
+  this project includes code derived from the Go standard library's container/list package,
+  which is licensed under the BSD 3-Clause License.  
+  The original copyright and license text are included in the source files.
+- The rest of this project is licensed under the Apache License 2.0.
