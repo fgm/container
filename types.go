@@ -21,6 +21,35 @@ type Queue[E any] interface {
 	Dequeue() (e E, ok bool)
 }
 
+//go:generate go run golang.org/x/tools/cmd/stringer -type=WaitableQueueState -output=types_waitablequeuestate_string.go
+type WaitableQueueState int
+
+const (
+	_                         WaitableQueueState = iota
+	QueueIsBelowLowWatermark                     // Below low watermark
+	QueueIsNominal                               // Between low and high watermarks
+	QueueIsAboveHighWatermark                    // Above high watermark
+)
+
+// Unit is a zero-sized struct used as a placeholder in some generic types.
+type Unit = struct{}
+
+// WaitableQueue is a generic unbounded queue meant to be used in a producer-consumer pattern,
+// and implementations MUST be concurrency-safe.
+type WaitableQueue[E any] interface {
+	// Dequeue removes the first element from the queue. If the queue is empty,
+	// it returns the zero value of the element type, ok is false, and result is QueueIsBelowLowWatermark.
+	Dequeue() (e E, ok bool, result WaitableQueueState)
+	// Enqueue adds an element to the queue.
+	Enqueue(E) WaitableQueueState
+	// Countable method Len returns the number of elements in the queue.
+	// Since this not atomic versus Enqueue and Dequeue,
+	// it MUST NOT be used to take decisions, but only as an observability tool.
+	Countable
+	// WaitChan returns a channel that signals when an item might be available or when the queue is closed.
+	WaitChan() <-chan Unit
+}
+
 // Stack is a generic queue with no concurrency guarantees.
 // Instantiate by stack.New<implementation>Stack(sizeHint).
 // The size hint MAY be used by some implementations to optimize storage.
