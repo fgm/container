@@ -8,7 +8,7 @@ import (
 	"github.com/fgm/container"
 )
 
-type unit = struct{}
+type unit = container.Unit
 
 // BasicMap is the textbook Go implementation of a Go set using generics.
 //
