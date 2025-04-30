@@ -2,7 +2,7 @@
   <configuration default="false" name="Bench all" type="GoTestRunConfiguration" factoryName="Go Test" singleton="false">
     <module name="container" />
     <working_directory value="$PROJECT_DIR$" />
-    <go_parameters value="-benchtime=100ms" />
+    <go_parameters value="-benchtime=100ms -benchmem" />
     <parameters value="./..." />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
@@ -16,9 +16,10 @@
     </EXTENSION>
     <kind value="DIRECTORY" />
     <package value="github.com/fgm/container" />
-    <directory value="$PROJECT_DIR$" />
+    <directory value="$PROJECT_DIR$/queue" />
     <filePath value="$PROJECT_DIR$" />
     <framework value="gobench" />
+    <pattern value="Enqueue" />
     <method v="2" />
   </configuration>
 </component>
