@@ -1,13 +1,19 @@
-package orderedmap
+package orderedmap_test
 
 import (
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/fgm/container"
+	"github.com/fgm/container/orderedmap"
 )
+
+// This ensures that OrderedMap maintains compatibility with sync.Map:
+// it will fail at compile time if that compatibility is broken.
+var _ = (func(orderedMap container.OrderedMap[any, any]) int { return 0 })(&sync.Map{})
 
 type in struct {
 	key   string
@@ -44,7 +50,7 @@ func TestSlice_Range(t *testing.T) {
 				input[i-1] = in{key: strconv.Itoa(i), value: i}
 			}
 
-			var om = NewSlice[string, int](size, test.stable)
+			var om = orderedmap.NewSlice[string, int](size, test.stable)
 			omc, ok := om.(container.Countable)
 			if !ok {
 				t.Fatalf("expected Countable interface")
@@ -102,7 +108,7 @@ func TestSlice_Store_Load_Delete(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			var om = NewSlice[string, int](1, test.stable)
+			var om = orderedmap.NewSlice[string, int](1, test.stable)
 			om.Store(one, 1)
 			zero, loaded := om.Load("zero")
 			if loaded {
