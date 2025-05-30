@@ -2,9 +2,11 @@ package container
 
 import "iter"
 
+// OrderedMap has the same API as a sync.Map for the specific case of OrderedMap[any, any].
 type OrderedMap[K comparable, V any] interface {
 	Delete(key K)
 	Load(key K) (value V, loaded bool)
+	// Range is similar to the sync.Map Range method but can fail if the callback deletes map entries.
 	Range(func(key K, value V) bool)
 	Store(key K, value V)
 }
