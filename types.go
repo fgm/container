@@ -34,18 +34,15 @@ const (
 // Unit is a zero-sized struct used as a placeholder in some generic types.
 type Unit = struct{}
 
-// WaitableQueue is a generic unbounded queue meant to be used in a producer-consumer pattern,
-// and implementations MUST be concurrency-safe.
+// WaitableQueue is a concurrency-safe generic unbounded queue.
+// It is meant to be used in a producer-consumer pattern,
+// where the blocking behavior and capacity limits of channels are an issue.
 type WaitableQueue[E any] interface {
-	// Dequeue removes the first element from the queue. If the queue is empty,
-	// it returns the zero value of the element type, ok is false, and result is QueueIsBelowLowWatermark.
+	// Dequeue removes the first element from the queue if any is present.
+	// If the queue is empty, it returns the zero value of the element type, ok is false, and the result is QueueIsBelowLowWatermark.
 	Dequeue() (e E, ok bool, result WaitableQueueState)
 	// Enqueue adds an element to the queue.
 	Enqueue(E) WaitableQueueState
-	// Countable method Len returns the number of elements in the queue.
-	// Since this not atomic versus Enqueue and Dequeue,
-	// it MUST NOT be used to take decisions, but only as an observability tool.
-	Countable
 	// WaitChan returns a channel that signals when an item might be available or when the queue is closed.
 	WaitChan() <-chan Unit
 }
@@ -61,6 +58,8 @@ type Stack[E any] interface {
 }
 
 // Countable MAY be provided by some implementations.
+// For concurrency-safe types, it is not atomic vs other operations,
+// meaning it MUST NOT be used to take decisions, but only as an observability/debugging tool.
 type Countable interface {
 	Len() int
 }
