@@ -2,7 +2,7 @@
   <configuration default="false" name="Bench all" type="GoTestRunConfiguration" factoryName="Go Test" singleton="false">
     <module name="container" />
     <working_directory value="$PROJECT_DIR$" />
-    <go_parameters value="-benchtime=100ms" />
+    <go_parameters value="-benchtime=100ms -benchmem" />
     <parameters value="./..." />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
@@ -11,7 +11,7 @@
       <option name="IS_IGNORE_MISSING_FILES" value="false" />
       <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
       <ENTRIES>
-        <ENTRY IS_ENABLED="true" PARSER="runconfig" />
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
       </ENTRIES>
     </EXTENSION>
     <kind value="DIRECTORY" />

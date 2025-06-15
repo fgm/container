@@ -11,7 +11,7 @@ import (
 	"github.com/fgm/container/set"
 )
 
-type unit = struct{}
+type unit = container.Unit
 
 type testIntSet interface {
 	container.Set[int]
