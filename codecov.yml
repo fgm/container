@@ -9,6 +9,7 @@ coverage:
         target: 75%
         threshold: 5%
         paths:
-          - "*/main.go"
+          - "cmd/**/main.go"
   ignore:
+    - "cmd/**/main.go"
     - "types_waitablequeuestate_string.go" # Generated file

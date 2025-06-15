@@ -11,11 +11,12 @@ func _() {
 	_ = x[QueueIsBelowLowWatermark-1]
 	_ = x[QueueIsNominal-2]
 	_ = x[QueueIsAboveHighWatermark-3]
+	_ = x[QueueIsNearSaturation-4]
 }
 
-const _WaitableQueueState_name = "QueueIsBelowLowWatermarkQueueIsNominalQueueIsAboveHighWatermark"
+const _WaitableQueueState_name = "QueueIsBelowLowWatermarkQueueIsNominalQueueIsAboveHighWatermarkQueueIsNearSaturation"
 
-var _WaitableQueueState_index = [...]uint8{0, 24, 38, 63}
+var _WaitableQueueState_index = [...]uint8{0, 24, 38, 63, 84}
 
 func (i WaitableQueueState) String() string {
 	i -= 1
