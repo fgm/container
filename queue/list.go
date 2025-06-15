@@ -25,7 +25,7 @@ func (sq *listQueue[E]) Dequeue() (E, bool) {
 	if sq.head == nil {
 		return *new(E), false
 	}
-	// Single element queue : convert to empty.
+	// Single element queue: convert to empty.
 	if sq.head.Next == nil {
 		e := sq.head.Value
 		sq.head = nil
