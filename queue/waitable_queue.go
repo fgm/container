@@ -1,21 +1,29 @@
 package queue
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/fgm/container"
 )
 
+var (
+	ErrCapacityIsNegative                  = errors.New("container: initial capacity cannot be negative")
+	ErrLowWatermarkIsNegative              = errors.New("container: low watermark cannot be negative")
+	ErrHighWatermarkIsNegative             = errors.New("container: high watermark cannot be negative")
+	ErrHighWatermarkIsLessThanLowWatermark = errors.New("container: high watermark cannot be less than low watermark")
+)
+
 type unit = container.Unit
 
 // waitable implements WaitableQueue
 type waitable[E any] struct {
-	closed bool
-	items  []E
-	hi, lo int // Low and high watermarks
-	mu     sync.Mutex
-	signal chan unit // Used to signal availability or closure
+	closed      bool
+	items       []E
+	hi, lo, sat int // Low and high watermarks, possible saturation
+	mu          sync.Mutex
+	signal      chan unit // Used to signal availability or closure
 }
 
 // NewWaitableQueue creates a new WaitableQueue with the given initial capacity and watermarks.
@@ -24,16 +32,16 @@ type waitable[E any] struct {
 // Implementations MAY use the initial capacity to preallocate storage.
 func NewWaitableQueue[E any](initialCapacity int, lowWatermark, highWatermark int) (container.WaitableQueue[E], error) {
 	if initialCapacity < 0 {
-		return nil, fmt.Errorf("container: initialCapacity (%d) cannot be negative", initialCapacity)
+		return nil, fmt.Errorf("%w: got %d", ErrCapacityIsNegative, initialCapacity)
 	}
 	if lowWatermark < 0 {
-		return nil, fmt.Errorf("container: lowWatermark (%d) cannot be negative", lowWatermark)
+		return nil, fmt.Errorf("%w: got %d", ErrLowWatermarkIsNegative, lowWatermark)
 	}
 	if highWatermark < 0 {
-		return nil, fmt.Errorf("container: highWatermark (%d) cannot be negative", highWatermark)
+		return nil, fmt.Errorf("%w: got %d", ErrHighWatermarkIsNegative, highWatermark)
 	}
 	if lowWatermark > highWatermark {
-		return nil, fmt.Errorf("container: lowWatermark (%d) cannot be greater than highWatermark (%d)", lowWatermark, highWatermark)
+		return nil, fmt.Errorf("%w: low is %d high is %d", ErrHighWatermarkIsLessThanLowWatermark, lowWatermark, highWatermark)
 	}
 
 	// Use a buffered channel of size 1. This prevents Enqueue
@@ -45,6 +53,7 @@ func NewWaitableQueue[E any](initialCapacity int, lowWatermark, highWatermark in
 		items:  make([]E, 0, initialCapacity),
 		hi:     highWatermark,
 		lo:     lowWatermark,
+		sat:    (highWatermark + 3*initialCapacity) / 4,
 		signal: make(chan unit, 1),
 	}, nil
 }
@@ -55,10 +64,12 @@ func NewWaitableQueue[E any](initialCapacity int, lowWatermark, highWatermark in
 func (bq *waitable[E]) getState() container.WaitableQueueState {
 	l := len(bq.items) // Do not use bq.Len() here, it would deadlock.
 	switch {
-	case l < bq.lo:
+	case l <= bq.lo:
 		return container.QueueIsBelowLowWatermark
-	case l > bq.hi:
+	case l >= bq.hi && l < bq.sat:
 		return container.QueueIsAboveHighWatermark
+	case l > bq.sat:
+		return container.QueueIsNearSaturation
 	default:
 		return container.QueueIsNominal
 	}

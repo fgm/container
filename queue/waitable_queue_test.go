@@ -2,6 +2,7 @@ package queue_test
 
 import (
 	"context"
+	"errors"
 	"log"
 	"sort"
 	"sync"
@@ -250,7 +251,7 @@ func TestConcurrentWaitableQueue_ContextCancel(t *testing.T) {
 	t.Logf("Enqueued %d items.", itemsToEnqueue)
 
 	// Give consumers a little time to process some items
-	//time.Sleep(100 * time.Millisecond) // Increased sleep slightly
+	// time.Sleep(100 * time.Millisecond) // Increased sleep slightly
 
 	// Cancel the context
 	t.Log("Cancelling context...")
@@ -295,4 +296,160 @@ func TestConcurrentWaitableQueue_ContextCancel(t *testing.T) {
 		t.Logf("Successfully processed %d items before/during context cancellation (expected < %d). Items: %v", processedCount, itemsToEnqueue, finalItems)
 	}
 	// The main point is that the consumers stopped gracefully after cancellation.
+}
+
+func TestNewWaitableQueue(t *testing.T) {
+	const (
+		Cap  = 10
+		Low  = 2
+		High = 8
+	)
+	tests := [...]struct {
+		name             string
+		capacity, lo, hi int
+		expectErr        error
+	}{
+		{"capacity below 0", -1, -1, -1, queue.ErrCapacityIsNegative},
+		{"low watermark below 0", Cap, -1, -1, queue.ErrLowWatermarkIsNegative},
+		{"high watermark below 0", Cap, Low, -1, queue.ErrHighWatermarkIsNegative},
+		{"high watermark below low watermark", Cap, High, Low, queue.ErrHighWatermarkIsLessThanLowWatermark},
+		{"happy path", Cap, Low, High, nil},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual, actualErr := queue.NewWaitableQueue[int](test.capacity, test.lo, test.hi)
+			switch {
+			case test.expectErr == nil && actualErr != nil:
+				t.Fatalf("Got %v but expected success", actualErr)
+			case test.expectErr != nil:
+				if !errors.Is(actualErr, test.expectErr) {
+					t.Fatalf("Got %v but expected error %v", actualErr, test.expectErr)
+				}
+				if actual != nil {
+					t.Fatalf("Got %#v but expected nil queue", actual)
+				}
+				return // Queue is nil, nothing more to check.
+			}
+			var wqs container.WaitableQueueState
+
+			if wqs = actual.Enqueue(1); wqs != container.QueueIsBelowLowWatermark {
+				t.Errorf("Got %s but expected new queue to be below low watermark", wqs)
+			}
+			// Enqueue just enough to be in nominal state.
+			mid := (High + Low - 1) / 2 // We already enqueued one item.
+			for range mid {
+				wqs = actual.Enqueue(1)
+			}
+			if wqs != container.QueueIsNominal {
+				t.Errorf("Got %s but expected half-allocated queue to be nominal", wqs)
+			}
+			// Fill the queue to reach saturation.
+			for range Cap - mid {
+				wqs = actual.Enqueue(1)
+			}
+			if wqs != container.QueueIsNearSaturation {
+				t.Errorf("Got %s but expected full queue to be near saturation", wqs)
+			}
+		})
+	}
+}
+
+func TestWaitable_Len(t *testing.T) {
+	tests := []struct {
+		name           string
+		initialItems   int
+		operations     func(q container.WaitableQueue[int])
+		expectedLength int
+	}{
+		{
+			name:           "empty queue",
+			initialItems:   0,
+			operations:     nil,
+			expectedLength: 0,
+		},
+		{
+			name:           "queue with items",
+			initialItems:   5,
+			operations:     nil,
+			expectedLength: 5,
+		},
+		{
+			name:         "enqueue operations",
+			initialItems: 2,
+			operations: func(q container.WaitableQueue[int]) {
+				q.Enqueue(42)
+				q.Enqueue(43)
+				q.Enqueue(44)
+			},
+			expectedLength: 5, // 2 initial + 3 added
+		},
+		{
+			name:         "dequeue operations",
+			initialItems: 5,
+			operations: func(q container.WaitableQueue[int]) {
+				_, _, _ = q.Dequeue()
+				_, _, _ = q.Dequeue()
+			},
+			expectedLength: 3, // 5 initial - 2 removed
+		},
+		{
+			name:         "mixed operations",
+			initialItems: 3,
+			operations: func(q container.WaitableQueue[int]) {
+				_, _, _ = q.Dequeue()
+				q.Enqueue(42)
+				q.Enqueue(43)
+				_, _, _ = q.Dequeue()
+			},
+			expectedLength: 3, // 3 initial - 2 removed + 2 added
+		},
+		{
+			name:         "concurrent operations",
+			initialItems: 0,
+			operations: func(q container.WaitableQueue[int]) {
+				var wg sync.WaitGroup
+				// Ajouter 10 éléments en concurrence
+				wg.Add(10)
+				for i := 0; i < 10; i++ {
+					go func(value int) {
+						defer wg.Done()
+						q.Enqueue(value)
+					}(i)
+				}
+				wg.Wait()
+			},
+			expectedLength: 10, // 0 initial + 10 added concurrently
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			q, err := queue.NewWaitableQueue[int](queue.WQCap, queue.WQLow, queue.WQHigh)
+			if err != nil {
+				t.Fatalf("Failed to create queue: %v", err)
+			}
+			actual, ok := q.(interface {
+				container.WaitableQueue[int]
+				container.Countable
+			})
+			if !ok {
+				t.Fatalf("expected both WaitableQueue and Countable interface")
+			}
+
+			// Ajouter les éléments initiaux
+			for i := 0; i < test.initialItems; i++ {
+				actual.Enqueue(i)
+			}
+
+			// Exécuter les opérations du test si définies
+			if test.operations != nil {
+				test.operations(actual)
+			}
+
+			// Vérifier que Len() retourne la longueur attendue
+			if length := actual.Len(); length != test.expectedLength {
+				t.Errorf("Len() = %d, want %d", length, test.expectedLength)
+			}
+		})
+	}
 }

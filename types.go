@@ -29,6 +29,7 @@ const (
 	QueueIsBelowLowWatermark                     // Below low watermark
 	QueueIsNominal                               // Between low and high watermarks
 	QueueIsAboveHighWatermark                    // Above high watermark
+	QueueIsNearSaturation                        // Queue almost at full capacity: this is an emergency signal which may be used to trigger load shedding.
 )
 
 // Unit is a zero-sized struct used as a placeholder in some generic types.
@@ -40,10 +41,18 @@ type Unit = struct{}
 type WaitableQueue[E any] interface {
 	// Dequeue removes the first element from the queue if any is present.
 	// If the queue is empty, it returns the zero value of the element type, ok is false, and the result is QueueIsBelowLowWatermark.
+	// QueueIsAboveHighWatermark should be used to scale the consumer up or trigger a producer throttle.
+	// QueueIsNearSaturation is the same, just more urgent, and is more useful on the Enqueue method.
 	Dequeue() (e E, ok bool, result WaitableQueueState)
 	// Enqueue adds an element to the queue.
+	// Most application will ignore the result of this call:
+	// the most common reason to use it is checking for QueueIsNearSaturation as a trigger for producer throttling.
+	// Beware of using QueueIsBelowLowWatermark as a sign to resume production,
+	// as you will never get it if you do not call the method,
+	// meaning your producer could never unthrottle if it completely stops emitting.
+	// In most cases, use the Dequeue / WaitChan side for flow control instead.
 	Enqueue(E) WaitableQueueState
-	// WaitChan returns a channel that signals when an item might be available or when the queue is closed.
+	// WaitChan returns a channel that signals when an item might be available to dequeue or when the queue is closed.
 	WaitChan() <-chan Unit
 }
 
