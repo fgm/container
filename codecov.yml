@@ -10,3 +10,5 @@ coverage:
         threshold: 5%
         paths:
           - "*/main.go"
+  ignore:
+    - "types_waitablequeuestate_string.go" # Generated file
