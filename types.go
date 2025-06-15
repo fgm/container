@@ -39,13 +39,16 @@ type Unit = struct{}
 // It is meant to be used in a producer-consumer pattern,
 // where the blocking behavior and capacity limits of channels are an issue.
 type WaitableQueue[E any] interface {
+	// Close the queue, preventing any further enqueueing, and unblocking all consumers waiting on WaitChan.
+	// In most cases, it only makes sense to have it closed by the producer.
+	Close()
 	// Dequeue removes the first element from the queue if any is present.
 	// If the queue is empty, it returns the zero value of the element type, ok is false, and the result is QueueIsBelowLowWatermark.
 	// QueueIsAboveHighWatermark should be used to scale the consumer up or trigger a producer throttle.
 	// QueueIsNearSaturation is the same, just more urgent, and is more useful on the Enqueue method.
 	Dequeue() (e E, ok bool, result WaitableQueueState)
 	// Enqueue adds an element to the queue.
-	// Most application will ignore the result of this call:
+	// Most applications will ignore the result of this call:
 	// the most common reason to use it is checking for QueueIsNearSaturation as a trigger for producer throttling.
 	// Beware of using QueueIsBelowLowWatermark as a sign to resume production,
 	// as you will never get it if you do not call the method,

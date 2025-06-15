@@ -17,16 +17,20 @@ making it suitable both for highest performance (in-place), and for LRU caches (
 
 See the available types by underlying storage
 
-| Type       | Slice | Map | List | List+sync.Pool | List+int. pool | Recommended          |
-|------------|:-----:|:---:|:----:|:--------------:|:--------------:|----------------------|
-| OrderedMap |   Y   |     |      |                |                | Slice with size hint |
-| Queue      |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
-| Set        |       |  Y  |      |                |                | Map with size hint   |
-| Stack      |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
+| Type          | Slice | Map | List | List+sync.Pool | List+int. pool | Recommended          |
+|---------------|:-----:|:---:|:----:|:--------------:|:--------------:|----------------------|
+| OrderedMap    |   Y   |     |      |                |                | Slice with size hint |
+| Queue         |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
+| WaitableQueue |   Y   |     |      |                |                | Slice with size hint |
+| Set           |       |  Y  |      |                |                | Map with size hint   |
+| Stack         |   Y   |     |  Y   |       Y        |       Y        | Slice with size hint |
 
-**CAVEAT**: In order to optimize performance,
+
+**CAVEAT**: In order to optimize performance, except for WaitableQueue,
 all of these implementations are unsafe for concurrent execution,
 so they need protection in concurrency situations.
+
+WaitableQueue being designed for concurrent code, on the other hand, is concurrency-safe.
 
 Generally speaking, in terms of performance:
 
@@ -51,23 +55,44 @@ om := orderedmap.NewSlice[Key, Value](sizeHint, stable)
 om.Store(k, v)
 om.Range(func (k K, v V) bool { fmt.Println(k, v); return true })
 v, loaded := om.Load(k)
-if !loaded { fmt.Printf("No entry for key %v\n", k)}
+if !loaded {
+        fmt.Fprintf(w, "No entry for key %v\n", k)
+}
 om.Delete(k) // Idempotent: does not fail on nonexistent keys.
 ```
 
-### Queues
+### Classic Queues without flow control
 
 ```go
 var e Element
 q := queue.NewSliceQueue[Element](sizeHint)
 q.Enqueue(e)
 if lq, ok := q.(container.Countable); ok {
-fmt.Printf("elements in queue: %d\n", lq.Len())
+        fmt.Fprintf(w, "elements in queue: %d\n", lq.Len())
 }
 for i := 0; i < 2; i++ {
-e, ok := q.Dequeue()
-fmt.Printf("Element: %v, ok: %t\n", e, ok)
+        e, ok := q.Dequeue()
+        fmt.Fprintf(w, "Element: %v, ok: %t\n", e, ok)
 }
+```
+
+### WaitableQueue: a concurrent queue with flow control
+
+```go
+var e Element
+q, _ := queue.NewWaitableQueue[Element](sizeHint, lowWatermark, highWatermark)
+go func() {
+        wqs := q.Enqueue(e)
+        if lq, ok := q.(container.Countable); ok {
+                fmt.Fprintf(w, "elements in queue: %d, status: %s\n", lq.Len(), wqs)
+        }
+}
+<-q.WaitChan()                    // Wait for elements to be available to dequeue
+for i := 0; i < 2; i++ {          // Then dequeue them
+        e, ok, wqs := q.Dequeue() // Non-blocking, ok will be true for the first and false for the second 
+        fmt.Fprintf(w, "Element: %v, ok: %t, status: %s\n", e, ok, wqs)
+}
+q.Close() // Only needed if consumers may still be waiting on <-q.WaitChan
 ```
 
 ### Sets
@@ -78,10 +103,10 @@ s := set.NewBasicMap[Element](sizeHint)
 s.Add(e)
 s.Add(e)
 if cs, ok := q.(container.Countable); ok {
-fmt.Printf("elements in set: %d\n", cs.Len()) // 1
+        fmt.Fprintf(w, "elements in set: %d\n", cs.Len()) // 1
 }
 for e := range s.Items() {
-fmt.Fprintln(w, e)
+        fmt.Fprintln(w, e)
 }
 
 ```
@@ -92,11 +117,11 @@ fmt.Fprintln(w, e)
 s := stack.NewSliceStack[Element](sizeHint)
 s.Push(e)
 if ls, ok := s.(container.Countable); ok {
-fmt.Printf("elements in stack: %d\n", ls.Len())
+        fmt.Printf("elements in stack: %d\n", ls.Len())
 }
 for i := 0; i < 2; i++ {
-e, ok := s.Pop()
-fmt.Printf("Element: %v, ok: %t\n", e, ok)
+        e, ok := s.Pop()
+        fmt.Printf("Element: %v, ok: %t\n", e, ok)
 }
 ```
 

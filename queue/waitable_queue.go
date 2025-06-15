@@ -68,7 +68,7 @@ func (bq *waitable[E]) getState() container.WaitableQueueState {
 		return container.QueueIsBelowLowWatermark
 	case l >= bq.hi && l < bq.sat:
 		return container.QueueIsAboveHighWatermark
-	case l > bq.sat:
+	case l >= bq.sat:
 		return container.QueueIsNearSaturation
 	default:
 		return container.QueueIsNominal
