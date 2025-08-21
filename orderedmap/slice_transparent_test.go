@@ -22,7 +22,7 @@ func TestSlice_mustIndexOf(t *testing.T) {
 			// Catch expected panic
 			defer func() { _ = recover() }()
 
-			var om = NewSlice[string, int](1, test.stable).(*Slice[string, int])
+			var om = NewSlice[string, int](1, test.stable)
 			om.store["one"] = 1
 			om.mustIndexOf("one")
 			t.Fatalf("mustIndexOf did not panic on missing order key")
@@ -45,7 +45,7 @@ func TestSlice_Range_inconsistent(t *testing.T) {
 			// Catch expected panic
 			defer func() { _ = recover() }()
 
-			var om = NewSlice[string, int](1, test.stable).(*Slice[string, int])
+			var om = NewSlice[string, int](1, test.stable)
 			om.Store("one", 1)
 			delete(om.store, "one")
 			om.Range(func(_ string, _ int) bool { return false })
@@ -60,7 +60,7 @@ func TestSlice_Range_Mutators(t *testing.T) {
 	const size = 4
 	type testType = Slice[int, int]
 	src := func() testType {
-		base := NewSlice[int, int](size, false).(*Slice[int, int])
+		base := NewSlice[int, int](size, false)
 		for i := range size {
 			base.Store(i, i)
 		}

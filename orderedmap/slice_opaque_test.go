@@ -50,33 +50,33 @@ func TestSlice_Range(t *testing.T) {
 				input[i-1] = in{key: strconv.Itoa(i), value: i}
 			}
 
-			var om = orderedmap.NewSlice[string, int](size, test.stable)
-			omc, ok := om.(container.Countable)
-			if !ok {
-				t.Fatalf("expected Countable interface")
-			}
+			var omc interface {
+				container.OrderedMap[string, int]
+				container.Countable
+			} = orderedmap.NewSlice[string, int](size, test.stable)
+
 			for _, e := range input {
-				om.Store(e.key, e.value)
+				omc.Store(e.key, e.value)
 			}
 			// Ensure deletion actually removes existing entries.
-			om.Delete("5")
+			omc.Delete("5")
 			if omc.Len() != size-1 {
 				t.Fatalf("len is %d, expected %d", omc.Len(), size-1)
 			}
 			// Ensure deletion does not actually remove anything for nonexistent entries.
-			om.Delete("50")
+			omc.Delete("50")
 			if omc.Len() != size-1 {
 				t.Fatalf("len is %d, expected %d", omc.Len(), size-1)
 			}
 			// Ensure updates do not change the entries count.
-			om.Store("1", 11)
+			omc.Store("1", 11)
 			if omc.Len() != size-1 {
 				t.Fatalf("len is %d, expected %d", omc.Len(), size-1)
 			}
 
 			var keys = make([]string, 0, size)
 			var vals = make([]int, 0, size)
-			om.Range(func(k string, v int) bool {
+			omc.Range(func(k string, v int) bool {
 				keys = append(keys, k)
 				vals = append(vals, v)
 				// Return false on the expected last key to cover the break condition.
