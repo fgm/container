@@ -2,8 +2,6 @@ package orderedmap
 
 import (
 	"fmt"
-
-	"github.com/fgm/container"
 )
 
 type Slice[K comparable, V any] struct {
@@ -70,7 +68,7 @@ func (s *Slice[K, V]) Store(k K, v V) {
 	s.store[k] = v
 }
 
-func NewSlice[K comparable, V any](sizeHint int, stable bool) container.OrderedMap[K, V] {
+func NewSlice[K comparable, V any](sizeHint int, stable bool) *Slice[K, V] {
 	s := &Slice[K, V]{
 		stable: stable,
 		order:  make([]K, 0, sizeHint),
