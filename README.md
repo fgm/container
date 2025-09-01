@@ -51,7 +51,7 @@ See complete listings in:
 
 ```go
 stable := true
-om := orderedmap.NewSlice[Key, Value](sizeHint, stable)
+om := orderedmap.NewSlice[Key, Value](sizeHint, stable) // OrderedMap and Countable
 om.Store(k, v)
 om.Range(func (k K, v V) bool { fmt.Println(k, v); return true })
 v, loaded := om.Load(k)

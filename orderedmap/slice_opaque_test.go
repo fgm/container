@@ -50,7 +50,7 @@ func TestSlice_Range(t *testing.T) {
 				input[i-1] = in{key: strconv.Itoa(i), value: i}
 			}
 
-			var om = orderedmap.NewSlice[string, int](size, test.stable)
+			var om container.OrderedMap[string, int] = orderedmap.NewSlice[string, int](size, test.stable)
 			omc, ok := om.(container.Countable)
 			if !ok {
 				t.Fatalf("expected Countable interface")
