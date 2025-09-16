@@ -1,0 +1,6 @@
+New features: Set (#34), WaitableQueue (#67)
+
+- test improvements on OrderedMap (#62)
+- updated repository actions
+- fuzz tests on set.BasicMap (#41)
+- OSFF Best practices badging
