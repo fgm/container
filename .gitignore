@@ -13,6 +13,7 @@
 
 # IDE extras
 /.idea/aws.xml
+/.idea/copilot*
 /.run
 /.idea/runConfigurations
 
