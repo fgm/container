@@ -8,20 +8,20 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
+	_ = x[QueueIsEmpty-0]
 	_ = x[QueueIsBelowLowWatermark-1]
 	_ = x[QueueIsNominal-2]
 	_ = x[QueueIsAboveHighWatermark-3]
 	_ = x[QueueIsNearSaturation-4]
 }
 
-const _WaitableQueueState_name = "QueueIsBelowLowWatermarkQueueIsNominalQueueIsAboveHighWatermarkQueueIsNearSaturation"
+const _WaitableQueueState_name = "QueueIsEmptyQueueIsBelowLowWatermarkQueueIsNominalQueueIsAboveHighWatermarkQueueIsNearSaturation"
 
-var _WaitableQueueState_index = [...]uint8{0, 24, 38, 63, 84}
+var _WaitableQueueState_index = [...]uint8{0, 12, 36, 50, 75, 96}
 
 func (i WaitableQueueState) String() string {
-	i -= 1
 	if i < 0 || i >= WaitableQueueState(len(_WaitableQueueState_index)-1) {
-		return "WaitableQueueState(" + strconv.FormatInt(int64(i+1), 10) + ")"
+		return "WaitableQueueState(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _WaitableQueueState_name[_WaitableQueueState_index[i]:_WaitableQueueState_index[i+1]]
 }

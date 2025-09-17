@@ -25,11 +25,11 @@ type Queue[E any] interface {
 type WaitableQueueState int
 
 const (
-	_                         WaitableQueueState = iota
-	QueueIsBelowLowWatermark                     // Below low watermark
-	QueueIsNominal                               // Between low and high watermarks
-	QueueIsAboveHighWatermark                    // Above high watermark
-	QueueIsNearSaturation                        // Queue almost at full capacity: this is an emergency signal which may be used to trigger load shedding.
+	QueueIsEmpty              WaitableQueueState = iota // Only set at creation, not in regular use
+	QueueIsBelowLowWatermark                            // Below low watermark
+	QueueIsNominal                                      // Between low and high watermarks
+	QueueIsAboveHighWatermark                           // Above high watermark
+	QueueIsNearSaturation                               // Queue almost at full capacity: this is an emergency signal which may be used to trigger load shedding.
 )
 
 // Unit is a zero-sized struct used as a placeholder in some generic types.
