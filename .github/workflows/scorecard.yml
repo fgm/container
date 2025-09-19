@@ -12,7 +12,7 @@ on:
   schedule:
     - cron: '44 20 * * 4' # 20:44 UTC every Thursday; first-week check is in the job condition
   push:
-    branches: [ "main" ]
+    branches: [ main ]
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -31,9 +31,13 @@ jobs:
       security-events: write
       # Needed to publish results and get a badge (see publish_results below).
       id-token: write
-      # Uncomment the permissions below if installing in a private repository.
+      # Uncomment the reads below if this repository becomes private: upstream
+      # recommends them to avoid GraphQL and SAST gaps. A public repository
+      # needs neither, which is why ossf/scorecard's own workflow omits them.
       # contents: read
-      # actions: read
+      # issues: read
+      # pull-requests: read
+      # checks: read
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -55,6 +59,10 @@ jobs:
           # - you want to enable the Branch-Protection check on a *public* repository, or
           # - you are installing Scorecard on a *private* repository
           # To create the PAT, follow the steps in https://github.com/ossf/scorecard-action?tab=readme-ov-file#authentication-with-fine-grained-pat-optional.
+          # Deliberately left commented: main is protected by repository
+          # rulesets, not classic branch protection, and the default
+          # GITHUB_TOKEN can read those. A PAT would only add an annual
+          # rotation and a secret with admin-read scope.
           # repo_token: ${{ secrets.SCORECARD_TOKEN }}
 
           # Public repositories:
