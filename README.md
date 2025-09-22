@@ -125,28 +125,39 @@ for i := 0; i < 2; i++ {
 }
 ```
 
-### Running tests
-#### Normal tests: unit and benchmarks
+### Development
 
-The complete test coverage requires running not only the unit tests, but also
-the benchmarks, like:
+Since this is a library, it has no install process, but you can build it to ensure correctness, with:
 
 ```
-    go test -race -run=. -bench=. -coverprofile=cover.out -covermode=atomic ./...
+    make lint      # Run staticcheck linting checks
+    make build     # Build the library. Include test and fuzz-smoke targets.
+    make           # Shortcut for make lint && make build
 ```
 
-This will also run the fuzz tests in unit test mode, without triggering the fuzzing logic.
+#### Running normal tests: unit and benchmarks
+
+For the simple version, without generating coverage reports, run:
+```
+    make test       # Unit tests, fast
+    make coverage   # Coverage report in cover.out. A bit longer.
+    make bench      # Benchmarks: run to update BENCHMARKS.md
+    make fuzz-smoke # Fuzz tests as smoke tests: 10 seconds only, for CI builds
+```
+
+This will also run the fuzz tests in unit test mode, 
+without triggering the fuzzing logic.
 
 
-#### Fuzz tests
+#### Running fuzz tests
 
 Fuzz tests are not run by CI, but you can run them on-demand during development with:
 
 ```
-    go test -run='^$' -fuzz='^\QFuzzBasicMapAdd\E$'   -fuzztime=20s ./set
-    go test -run='^$' -fuzz='^\QFuzzBasicMapItems\E$' -fuzztime=20s ./set
-    go test -run='^$' -fuzz='^\QFuzzBasicMapUnion\E$' -fuzztime=20s ./set
+    go test -fuzz='\QFuzzBasicMapAdd\E'   -fuzztime=20s ./set
+    go test -fuzz='\QFuzzBasicMapItems\E' -fuzztime=20s ./set
+    go test -fuzz='\QFuzzBasicMapUnion\E' -fuzztime=20s ./set
 ``` 
 
 - Adjust `-fuzztime` duration as relevant: 20 seconds is just a smoke test.
-- Be sure to escape the `^$` and `\Q\E` characters in the `-fuzz` argument in your shell.
+- Be sure to escape the `\Q\E` characters in the `-fuzz` argument in your shell.
