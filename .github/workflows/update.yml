@@ -6,7 +6,7 @@ env:
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 2 * * 6" # 2am UTC, weekly on Saturday
+    - cron: "0 2 1-7 * 6" # 2am UTC, monthly on the first Saturday of each month
 
 permissions:
   contents: read
@@ -44,7 +44,7 @@ jobs:
         with:
           title: "Update package dependencies + tidy"
           body: |
-            This is a change initiated automatically on a weekly basis by a
+            This is a change initiated automatically on a monthly basis by a
             GitHub Action that updates the projects dependencies to their latest
             minor and patch-level versions. This lets us stay up to date
             incrementally so that updates are less effort to get merged compared
