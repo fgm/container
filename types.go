@@ -11,6 +11,12 @@ type OrderedMap[K comparable, V any] interface {
 	Store(key K, value V)
 }
 
+type OrderedMapWithRangeMutable[K comparable, V any] interface {
+	OrderedMap[K, V]
+	// RangeMutable allows its callbacks to delete map entries, operating on a snapshot.
+	RangeMutable(func(key K, value V) bool)
+}
+
 // Queue is a generic queue with no concurrency guarantees.
 // Instantiate by queue.New<implementation>Queue(sizeHint).
 // The size hint MAY be used by some implementations to optimize storage.
