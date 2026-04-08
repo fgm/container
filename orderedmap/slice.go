@@ -52,6 +52,21 @@ func (s *Slice[K, V]) Range(f func(key K, value V) bool) {
 	}
 }
 
+func (s *Slice[K, V]) RangeMutable(f func(key K, value V) bool) {
+	order := make([]K, len(s.order))
+	copy(order, s.order)
+	store := make(map[K]V, len(s.store))
+	for k, v := range s.store {
+		store[k] = v
+	}
+	snap := Slice[K, V]{
+		order:  order,
+		store:  store,
+		stable: s.stable,
+	}
+	snap.Range(f)
+}
+
 func (s *Slice[K, V]) Store(k K, v V) {
 	_, loaded := s.store[k]
 	if !loaded {

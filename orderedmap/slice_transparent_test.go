@@ -109,18 +109,23 @@ func TestSlice_Range_Mutators(t *testing.T) {
 		}
 	}
 	tests := [...]struct {
-		name          string
-		fn            func(*testType) func(key, value int) bool
-		expectedPanic error
-		expected      []int
+		name            string
+		useRangeMutable bool
+		fn              func(*testType) func(key, value int) bool
+		expectedPanic   error
+		expected        []int
 	}{
-		{"nop/plain range", fnNop, nil, []int{0, 0, 0, 1, 1, 2, 2, 3, 3}},
+		{"nop/plain range", false, fnNop, nil, []int{0, 0, 0, 1, 1, 2, 2, 3, 3}},
+		{"nop/mutable", true, fnNop, nil, []int{0, 0, 0, 1, 1, 2, 2, 3, 3}},
 		// Mutating a value moves it to the end of the map.
-		{"mutateOne/plain range", fnMutateOne, nil, []int{0, 0, 0, 2, 2, 3, 3, 1, 10}},
+		{"mutateOne/plain range", false, fnMutateOne, nil, []int{0, 0, 0, 2, 2, 3, 3, 1, 10}},
+		{"mutateOne/mutable", false, fnMutateOne, nil, []int{0, 0, 0, 2, 2, 3, 3, 1, 10}},
 		// Store a value moves it to the end of the map.
-		{"insertOne/plain range", fnInsertOne, nil, []int{0, 0, 0, 1, 1, 2, 2, 3, 3, 10, 10}},
+		{"insertOne/plain range", false, fnInsertOne, nil, []int{0, 0, 0, 1, 1, 2, 2, 3, 3, 10, 10}},
+		{"insertOne/mutable", false, fnInsertOne, nil, []int{0, 0, 0, 1, 1, 2, 2, 3, 3, 10, 10}},
 		// This is why we need to some form of mutation support: observe the unexpected results.
-		{"deleteOdd/plain range", fnDeleteOdd, errors.New(""), []int{0, 0, 0, 2, 2}},
+		{"deleteOdd/plain range", false, fnDeleteOdd, errors.New(""), []int{0, 0, 0, 2, 2}},
+		{"deleteOdd/mutable", true, fnDeleteOdd, nil, []int{0, 0, 0, 2, 2}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -133,7 +138,11 @@ func TestSlice_Range_Mutators(t *testing.T) {
 						actualPanic = err.(error)
 					}
 				}()
-				input.Range(test.fn(&input))
+				if test.useRangeMutable {
+					input.RangeMutable(test.fn(&input))
+				} else {
+					input.Range(test.fn(&input))
+				}
 			}()
 			actual := transform(input)
 			t1, t2 := reflect.TypeOf(actualPanic), reflect.TypeOf(test.expectedPanic)
