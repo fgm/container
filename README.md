@@ -137,7 +137,7 @@ Since this is a library, it has no install process, but you can build it to ensu
 
 #### Running normal tests: unit and benchmarks
 
-For the simple version, without generating coverage reports, run:
+For the simple version, run:
 ```
     make test       # Unit tests, fast
     make coverage   # Coverage report in cover.out. A bit longer.
