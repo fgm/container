@@ -14,3 +14,12 @@ updates:
     directory: /
     schedule:
       interval: "monthly"
+    # The workflows use more actions than the default open-PR limit of 5, and
+    # unmerged PRs keep holding that quota, so the lowest-ranked updates were
+    # silently never proposed: six of the eight months to 2026-08 produced no
+    # updates at all, and setup-go was never offered 7.0.0.
+    # Grouping makes the limit unreachable; the raised limit is belt and braces.
+    open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        patterns: ["*"]

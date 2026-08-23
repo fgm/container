@@ -1,18 +1,20 @@
 name: Update
 
-env:
-  GO_VERSION: 1.24
-
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 2 1-7 * 6" # 2am UTC, monthly on the first Saturday of each month
+    - cron: "0 2 * * 6" # 2am UTC every Saturday; first-week check is in the job condition
 
 permissions:
   contents: read
 
 jobs:
+  check-schedule:
+    uses: ./.github/workflows/check-first-week.yml
+
   dep_update:
+    needs: check-schedule
+    if: github.event_name != 'schedule' || needs.check-schedule.outputs.is-first-week == 'true'
     permissions:
       contents: write  # for peter-evans/create-pull-request to create branch
       pull-requests: write  # for peter-evans/create-pull-request to create a PR
@@ -21,17 +23,18 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: audit
 
-      - name: Install Go
-        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
+      # Checkout first: go-version-file reads go.mod from the working tree.
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
 
       - name: Update minor and patch-level dependencies
         run: go get -t -u ./...
