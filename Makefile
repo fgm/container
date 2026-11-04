@@ -20,6 +20,7 @@ bench:
 cover:
 	# This runs the benchmarks just once, as unit tests, for coverage reporting only.
 	# It does not replace running "make bench".
+	mkdir -p coverage
 	go test -v -race -run=. -bench=. -benchtime=1x -coverprofile=coverage/cover.out -covermode=atomic ./...
 
 .PHONY: test
